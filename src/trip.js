@@ -1,4 +1,3 @@
-
 import { euroKwhEffPair } from './energy.js';
 
 const q=(id)=>document.getElementById(id);
@@ -6,8 +5,7 @@ const q=(id)=>document.getElementById(id);
 export function planTrip(){
   const sel=q('tripModel').value;
   const ALL=(window.DATA||[]).concat(window.CUSTOM||[]);
-  const d = (window.__ROWS||ALL.map(x=>({marca:x.marca,modelo:x.modelo,cap:x.cap,cons:x.cons,pdc:x.pdc}))).find(x=> (x.marca+'
-'+x.modelo)===sel || (x.key===sel));
+  const d = (window.__ROWS||ALL.map(x=>({marca:x.marca,modelo:x.modelo,cap:x.cap,cons:x.cons,pdc:x.pdc}))).find(x=> (x.marca + '\n ' + x.modelo)===sel || (x.key===sel));
   const out=q('planOut');
   if(!d){ out.textContent='Seleciona um modelo.'; return; }
   if(!(d.cap && d.cons)){ out.textContent='Modelo sem dados completos.'; return; }
