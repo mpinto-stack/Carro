@@ -1,4 +1,3 @@
-
 import { ivaDec, saveCatalogEdits, loadCatalogEdits, applyCatalogEdits, KEYS } from './params.js';
 
 export let DATA = [
@@ -16,17 +15,58 @@ window.CUSTOM = window.CUSTOM||[];
 
 function q(id){ return document.getElementById(id); }
 
-export function buildCatalog(){ const sel=q('catalogSel'); if(!sel) return; sel.innerHTML=''; const ALL = (window.DATA||[]).concat(window.CUSTOM||[]); ALL.forEach(d=>{ const o=document.createElement('option'); o.value=d.marca+'
-'+d.modelo; o.textContent=d.marca+' '+d.modelo; sel.appendChild(o); }); fillCatalogFields(); }
+export function buildCatalog(){
+  const sel = q('catalogSel');
+  if(!sel) return;
+  sel.innerHTML = '';
+  const ALL = (window.DATA||[]).concat(window.CUSTOM||[]);
+  ALL.forEach(d => {
+    const o = document.createElement('option');
+    o.value = d.marca + '\n ' + d.modelo;
+    o.textContent = d.marca + ' ' + d.modelo;
+    sel.appendChild(o);
+  });
+  fillCatalogFields();
+}
 
-export function fillCatalogFields(){ const key=q('catalogSel').value; const ALL=(window.DATA||[]).concat(window.CUSTOM||[]); const d=ALL.find(x=> (x.marca+'
-'+x.modelo)===key ); if(!d) return; const iva = ivaDec(); const baseNet = (d.preco_net!=null)? d.preco_net : (q('catBaseIncluiIVA').checked ? ( (d.precoBase_gross||0)/(1+iva) ) : (d.precoBase_gross||0) ); q('catPreco').value=baseNet||0; q('catWLTP').value=d.wlpt_km||0; q('catCap').value=d.cap||0; q('catCons').value=d.cons||0; q('catPdc').value=d.pdc||0; q('catMala').value=d.mala||0; }
+export function fillCatalogFields(){
+  const key = q('catalogSel').value;
+  const ALL = (window.DATA||[]).concat(window.CUSTOM||[]);
+  const d = ALL.find(x => (x.marca + '\n ' + x.modelo) === key );
+  if(!d) return;
+  const iva = ivaDec();
+  const baseNet = (d.preco_net!=null)? d.preco_net : (q('catBaseIncluiIVA').checked ? ( (d.precoBase_gross||0)/(1+iva) ) : (d.precoBase_gross||0) );
+  q('catPreco').value=baseNet||0;
+  q('catWLTP').value=d.wlpt_km||0;
+  q('catCap').value=d.cap||0;
+  q('catCons').value=d.cons||0;
+  q('catPdc').value=d.pdc||0;
+  q('catMala').value=d.mala||0;
+}
 
-export function saveCatalogModel(){ const key=q('catalogSel').value; if(!key) return; const parts=key.split('
-'); const patch={ marca:parts[0], modelo:parts[1], preco_net:+q('catPreco').value||0, wlpt_km:+q('catWLTP').value||0, cap:+q('catCap').value||0, cons:+q('catCons').value||0, pdc:+q('catPdc').value||0, mala:+q('catMala').value||0}; const j = JSON.parse(localStorage.getItem(KEYS.CATALOG_KEY)||'{}'); j[key]=patch; localStorage.setItem(KEYS.CATALOG_KEY, JSON.stringify(j)); loadCatalogEdits(); applyCatalogEdits(); buildProps(); }
+export function saveCatalogModel(){
+  const key = q('catalogSel').value;
+  if(!key) return;
+  const parts = key.split('\n ');
+  const patch = {
+    marca: parts[0],
+    modelo: parts[1],
+    preco_net: +q('catPreco').value||0,
+    wlpt_km: +q('catWLTP').value||0,
+    cap: +q('catCap').value||0,
+    cons: +q('catCons').value||0,
+    pdc: +q('catPdc').value||0,
+    mala: +q('catMala').value||0
+  };
+  const j = JSON.parse(localStorage.getItem(KEYS.CATALOG_KEY)||'{}');
+  j[key]=patch;
+  localStorage.setItem(KEYS.CATALOG_KEY, JSON.stringify(j));
+  loadCatalogEdits();
+  applyCatalogEdits();
+  buildProps();
+}
 
 export function resetCatalog(){ localStorage.removeItem(KEYS.CATALOG_KEY); }
-
 
 export function buildProps(){
   const c = document.getElementById('props');
@@ -40,5 +80,3 @@ export function buildProps(){
     c.appendChild(div);
   });
 }
-
-
