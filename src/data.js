@@ -27,5 +27,5 @@ export function saveCatalogModel(){ const key=q('catalogSel').value; if(!key) re
 
 export function resetCatalog(){ localStorage.removeItem(KEYS.CATALOG_KEY); }
 
-export function buildProps(){ const c=document.getElementById('props'); if(!c) return; c.innerHTML=''; const ALL=(window.DATA||[]).concat(window.CUSTOM||[]); ALL.forEach((d,i)=>{ const id='p_'+i; const div=document.createElement('div'); div.innerHTML=`<label>${d.marca} ${d.modelo} — Proposta (EUR s/IVA)</label><input type="number" id="${id}">`; c.appendChild(div); }); }
+export function buildProps(){ const c=document.getElementById('props'); if(!c) return; c.innerHTML=''; const ALL=(window.DATA||[]).concat(window.CUSTOM||[]); ALL.forEach((d,i)=>{ const id='p_'+i; const div=document.createElement('div'); div.innerHTML = '<label>'+d.marca+' '+d.modelo+' &mdash; Proposta (EUR s/IVA)</label><input type="number" id="'+id+'">'; c.appendChild(div); }); }
 
