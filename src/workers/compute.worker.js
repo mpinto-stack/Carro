@@ -1,0 +1,1 @@
+self.onmessage = (ev)=>{ self.postMessage({ok:true}); };
