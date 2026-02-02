@@ -1,18 +1,20 @@
-
 import { euroKwhEffPair } from './energy.js';
 import { ivaDec } from './params.js';
 
 function q(id){return document.getElementById(id)}
-function colorFor(key){ let hash=0; for(let i=0;i<key.length;i++){ hash=((hash<<5)-hash)+key.charCodeAt(i); hash|=0; } const r=(hash>>>16)&255, g=(hash>>>8)&255, b=hash&255; return `rgb(${50+(r%180)},${50+(g%180)},${50+(b%180)})`; }
+function colorFor(key){
+  let hash=0;
+  for(let i=0;i<key.length;i++){ hash=((hash<<5)-hash)+key.charCodeAt(i); hash|=0; }
+  const r=(hash>>>16)&255, g=(hash>>>8)&255, b=hash&255;
+  return `rgb(${50+(r%180)},${50+(g%180)},${50+(b%180)})`;
+}
 
 export function precoNetPara(d){
   const iva = ivaDec();
-  const key=d.marca+'
-'+d.modelo;
+  const key = d.marca + '\n ' + d.modelo;
   // propostas
   const ALL=(window.DATA||[]).concat(window.CUSTOM||[]);
-  let idx = ALL.findIndex(x=> (x.marca+'
-'+x.modelo)===key);
+  let idx = ALL.findIndex(x => (x.marca + '\n ' + x.modelo) === key);
   let propEl = document.getElementById('p_'+idx);
   if(propEl && +propEl.value>0) return +propEl.value;
   if(d.preco_net!=null) return d.preco_net;
@@ -75,8 +77,7 @@ export function computeAll(){
     const pc_op = tco_km_net>0 ? (100*op_km_n/tco_km_net) : 0;
 
     rows.push({
-      key: d.marca+'
-'+d.modelo,
+      key: d.marca + '\n ' + d.modelo,
       name: d.marca+' '+d.modelo,
       marca:d.marca, modelo:d.modelo,
       precoApos_n:preco_ap_net, precoApos_g:preco_ap_gross,
