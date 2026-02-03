@@ -76,7 +76,13 @@ export function buildProps(){
   ALL.forEach((d,i)=>{
     const id='p_'+i;
     const div=document.createElement('div');
-    div.innerHTML = '<label>'+d.marca+' '+d.modelo+' &mdash; Proposta (EUR s/IVA)</label><input type="number" id="'+id+'">';
+    const label = document.createElement('label');
+    label.textContent = d.marca + ' ' + d.modelo + ' — Proposta (EUR s/IVA)';
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.id = id;
+    div.appendChild(label);
+    div.appendChild(input);
     c.appendChild(div);
   });
 }
