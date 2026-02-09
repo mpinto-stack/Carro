@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>EV - Compra Miguel</title>
+<style>
+:root{ --bg:#f6f8fb; --text:#0f172a; --muted:#5b6b88; --card:#ffffff; --line:#e5e9f2; --accent:#0ea5a5; --accent-2:#2563eb; --good:#16a34a; --warn:#f59e0b; --bad:#ef4444; --chip:#eef2ff }
+[data-theme="dark"]{ --bg:#0b1020; --text:#e6ecff; --muted:#93a2c6; --card:#131a2f; --line:#24314f; --accent:#22b5b5; --accent-2:#6ea8fe; --chip:#0f1b39 }
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,Arial;color:var(--text);background:var(--bg)}
+.wrap{max-width:1200px;margin:0 auto;padding:18px}
+h1{margin:0 0 10px 0;font-size:22px}
+h2{margin:0 0 8px 0;font-size:18px}
+.note{font-size:.92em;color:var(--muted)}
+.warn{background:#fff7ed;border:1px solid #fed7aa;color:#7c2d12;padding:8px 10px;border-radius:10px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:9px 12px;font-weight:700;cursor:pointer}
+.btn.ghost{background:#f1f5f9;color:#0f172a;border:1px solid #e2e8f0}
+[data-theme="dark"] .btn.ghost{background:#0f162d;color:#e6ecff;border-color:#2b3a66}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:0 1px 2px rgba(15,23,42,.06)}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+label{display:block;font-weight:600;margin-bottom:4px}
+input[type=number],input[type=text],select{width:100%;padding:9px 10px;border-radius:10px;border:1px solid #d6dbe6;background:#fbfcff;color:var(--text)}
+.tableWrap{overflow:auto}
+table{width:100%;border-collapse:collapse;margin-top:10px;min-width:860px}
+th,td{border-bottom:1px solid var(--line);padding:8px;text-align:right}
+th{color:#334155;text-align:center;background:#f8fafc}
+[data-theme="dark"] th{background:#0f162d;color:#b9c7e6}
+td.l, th.l{text-align:left}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;min-width:220px;box-shadow:0 1px 2px rgba(15,23,42,.06)}
+.kpis{display:flex;gap:12px;flex-wrap:wrap}
+.tabs{display:flex;gap:8px;align-items:center;margin-top:8px}
+.tab-btn{border:1px solid var(--line);background:var(--card);padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+.tab-btn.active{background:var(--accent-2);color:#fff;border-color:transparent}
+.tab{display:none;margin-top:12px}
+.tab.active{display:block}
+.tag{display:inline-block;background:var(--chip);border:1px solid #c7d2fe;color:#334155;border-radius:999px;padding:2px 8px;margin-left:6px;font-size:12px}
+.toast{position:fixed;right:16px;bottom:16px;background:#0ea5a5;color:#fff;padding:10px 14px;border-radius:10px;box-shadow:0 6px 16px rgba(0,0,0,.25);opacity:0;transform:translateY(10px);transition:all .3s;z-index:1000}
+.toast.show{opacity:1;transform:translateY(0)}
+.small{font-size:12px;color:var(--muted)}
+.stickyBar{position:sticky; top:6px; margin-left:auto; display:flex; gap:10px; align-items:center; background:var(--card); border:1px solid var(--line); padding:6px 10px; border-radius:10px; z-index:50}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.cardMini{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.cardMini h3{margin:0 0 6px 0;font-size:16px}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;background:#ecfeff;color:#0f766e;border:1px solid #99f6e4;font-weight:700;font-size:12px}
+svg{width:100%;height:360px;background:#fff;border:1px solid var(--line);border-radius:12px}
+.legend{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0}
+.legend .item{display:flex;align-items:center;gap:6px}
+.legend .sw{width:12px;height:12px;border-radius:3px}
+.thumb{width:64px;height:40px;object-fit:cover;border:1px solid var(--line);border-radius:8px;background:#fff}
+.carCard{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card)}
+.carCard img{width:100%;height:160px;object-fit:cover;display:block}
+.carCardBody{padding:10px}
+.cardPrice{margin:6px 0 4px 0;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:#f8fafc;color:#0f172a;display:flex;justify-content:space-between;align-items:center}
+[data-theme="dark"] .cardPrice{background:#0f162d;color:#e6ecff;border-color:#2b3a66}
+.ribbon{position:absolute;top:8px;left:8px;background:#22c55e;color:#fff;font-weight:800;font-size:12px;padding:4px 8px;border-radius:8px}
+.badgeMix{display:inline-flex;gap:6px;align-items:center}
+.badgeMix span{padding:2px 6px;border-radius:999px;font-weight:700;font-size:11px}
+.badgeCasa{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
+.badgeFora{background:#fef3c7;color:#92400e;border:1px solid #fcd34d}
+tr.best-row{outline:2px solid #22c55e;outline-offset:-2px}
+tr.rec-row{outline:2px dashed #2563eb;outline-offset:-2px}
+.tip{position:fixed;pointer-events:none;background:rgba(15,23,42,.95);color:#e2e8f0;padding:8px 10px;border-radius:8px;font-size:12px;line-height:1.35;box-shadow:0 8px 18px rgba(0,0,0,.35);z-index:999;display:none}
+@media print{ .tabs,.stickyBar,.btn,.tab-btn,.legend .item:nth-child(3),#tbl,.tableWrap,.panel input,.panel select,.panel label,#scnBar{display:none !important} .wrap{max-width:100%;padding:8mm} svg{height:300px} .panel{box-shadow:none;border:0;padding:0} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="row" style="justify-content:space-between;align-items:center">
+    <h1>EV - Compra Miguel</h1>
+    <div class="row">
+      <button class="btn ghost" id="btnPDF">Exportar PDF (Resumo)</button>
+      <button class="btn ghost" id="btnTheme">Dark mode</button>
+      <button class="btn ghost" id="btnReset">Repor padrões</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="sim">Simulação</button>
+    <button class="tab-btn" data-tab="car">Características</button>
+    <button class="tab-btn" data-tab="cust">Custos</button>
+    <button class="tab-btn" data-tab="gloss">Glossário</button>
+    <span id="upd" class="small"></span>
+  </div>
+
+  <!-- TAB: SIMULAÇÃO -->
+  <div id="tab-sim" class="tab active">
+    <div class="row stickyBar">
+      <span class="small">Mix no TCO:</span>
+      <div class="row" style="gap:4px">
+        <label class="row" style="margin:0;gap:4px"><span class="small">Casa</span><input type="number" id="mixCasa" value="80" min="0" max="100" style="width:70px">%</label>
+        <label class="row" style="margin:0;gap:4px"><span class="small">Fora</span><input type="number" id="mixFora" value="20" min="0" max="100" style="width:70px">%</label>
+      </div>
+    </div>
+
+    <!-- Cartões com imagem e cues -->
+    <div class="cards" id="cardsTop" style="margin-top:10px"></div>
+
+    <div class="grid g3" style="margin-top:12px">
+      <div class="panel">
+        <h2>1) Parâmetros gerais</h2>
+        <div class="grid g2">
+          <div><label>Anos de posse</label><input type="number" id="anos" value="10" min="1" step="1"></div>
+          <div><label>Km/ano (ano 1)</label><input type="number" id="kmAno" value="10000" min="1000" step="500"></div>
+          <div><label>Valor residual (%)</label><input type="number" id="residual" value="30" min="0" max="80" step="1"></div>
+          <div><label>Custos fixos/ano (EUR)</label><input type="number" id="fixosAno" value="450" min="0" step="10"></div>
+          <div><label>Reserva bateria (%)</label><input type="number" id="reserva" value="10" min="0" max="30" step="1"></div>
+          <div><label>Retoma (EUR)</label><input type="number" id="retoma" value="0" step="100"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>2) Energia – Casa</h2>
+        <div class="grid g2">
+          <div><label>Velocidade (kW)</label><input type="number" id="casa_kW" value="7.4" step="0.1" min="1"></div>
+          <div><label>Preço (EUR/kWh)</label><input type="number" id="casa_preco" value="0.16" step="0.001" min="0"></div>
+          <div style="grid-column:1/-1">
+            <label>Bateria inicial (SoC, %)</label>
+            <input type="range" id="casa_soc" value="20" min="0" max="99">
+            <div class="note" id="casa_est"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>3) Energia – Fora (DC)</h2>
+        <div class="grid g2">
+          <div><label>Velocidade (kW)</label><input type="number" id="fora_kW" value="120" step="1" min="30"></div>
+          <div><label>Preço (EUR/kWh)</label><input type="number" id="fora_preco" value="0.40" step="0.01" min="0"></div>
+          <div style="grid-column:1/-1">
+            <label>Bateria inicial (SoC, %)</label>
+            <input type="range" id="fora_soc" value="10" min="0" max="79">
+            <div class="note" id="fora_est"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:12px">
+      <h2>Assistente de decisão</h2>
+      <div class="row">
+        <div style="min-width:240px"><label>Custo (TCO €/km)</label><input type="range" id="w_custo" min="0" max="100" value="50"><div class="note">Mais peso ⇒ menor TCO</div></div>
+        <div style="min-width:240px"><label>Autonomia (inverno)</label><input type="range" id="w_auto" min="0" max="100" value="30"><div class="note">Mais peso ⇒ maior autonomia</div></div>
+        <div style="min-width:240px"><label>Espaço (mala)</label><input type="range" id="w_space" min="0" max="100" value="20"><div class="note">Mais peso ⇒ maior mala</div></div>
+        <div style="min-width:240px"><label>Ordenar por</label><select id="orderBy"><option value="tco">TCO (padrão)</option><option value="score">Recomendação (pontuação)</option></select></div>
+      </div>
+    </div>
+
+    <div class="kpis" id="kpis" style="margin-top:12px"></div>
+
+    <div class="panel tableWrap" style="margin-top:12px">
+      <div class="row" style="justify-content:space-between;align-items:center"><h2>Resultados (ordenado conforme seleção)</h2><div class="row"><button class="btn" id="btnCalc">Recalcular</button></div></div>
+      <table id="tbl"><thead><tr><th>Foto</th><th class="l">Marca</th><th class="l">Modelo</th><th>Preço (EUR, s/ IVA)</th><th><b>Preço após retoma (EUR)</b></th><th>Cap. útil (kWh)</th><th>Consumo (kWh/km)</th><th>EUR energia / 100 km</th><th>EUR capex / km</th><th><b>TCO EUR/km</b></th><th>TCO EUR/mês</th><th>Aut AE verão (km)</th><th>Aut AE inverno (km)</th><th>10–80% (min) DC</th><th>Score (0–100)</th><th class="l">Mala (L)</th></tr></thead><tbody></tbody></table>
+      <div class="note">Tudo “sem IVA”. TCO_km = depreciação/km + energia/km + fixos/km. Mix Casa/Fora aplicado ao custo de energia.</div>
+    </div>
+
+    <div class="panel" style="margin-top:12px">
+      <h2>Energia – Casa vs Fora (€/100 km por modelo)</h2>
+      <div id="cardsEF" class="cards"></div>
+    </div>
+  </div>
+
+  <!-- TAB: CARACTERÍSTICAS -->
+  <div id="tab-car" class="tab">
+    <div class="panel tableWrap">
+      <h2>Comparar características</h2>
+      <div class="note">Imagens públicas (Wikimedia) ou oficiais (podes alterar em <b>Imagem (URL)</b>). <b>Preferências auto‑guardadas</b>.</div>
+      <table id="tblCarac">
+        <thead>
+          <tr>
+            <th class="l">Modelo</th>
+            <th>WLTP (km)</th>
+            <th>Cap. útil (kWh)</th>
+            <th>Consumo (kWh/km)</th>
+            <th>Mala (L)</th>
+            <th>Pot. DC média (kW)</th>
+            <th>Tração</th>
+            <th>Potência (cv)</th>
+            <th>Binário (Nm)</th>
+            <th>0–100 (s)</th>
+            <th>Comp.×Larg.×Alt. (mm)</th>
+            <th>Imagem (URL)</th>
+            <th>Extras/Notas</th>
+          </tr>
+        </thead>
+        <tbody id="caracBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB: CUSTOS -->
+  <div id="tab-cust" class="tab">
+    <div class="panel">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <h2>Custos discriminados e acumulados</h2>
+        <div class="row" style="gap:8px"><label>Modelo</label><select id="costModel"></select><button class="btn" id="btnCSVcust">Descarregar CSV</button></div>
+      </div>
+
+      <div class="panel" style="margin-top:10px">
+        <h3 style="margin:0 0 6px 0">Cenários</h3>
+        <div class="grid g3">
+          <div><label>Crescimento preço energia (%/ano)</label><input type="number" id="scenE" value="0" step="0.5"></div>
+          <div><label>Variação km (%/ano)</label><input type="number" id="scenKm" value="0" step="0.5"></div>
+          <div><label>Variação manutenção (%/ano)</label><input type="number" id="scenMan" value="0" step="0.5"></div>
+          <div><label>Δ Mix Fora (p.p./ano)</label><input type="number" id="scenMixFora" value="0" step="1"></div>
+          <div style="grid-column:1/-1" class="note">Cenários aplicam-se à aba "Custos". O TCO instantâneo usa o mix e preços atuais.</div>
+        </div>
+        <div id="scnBar" class="row" style="margin-top:8px;gap:8px">
+          <input type="text" id="scnName" placeholder="Nome do cenário (ex.: Energia+5%)" style="min-width:220px">
+          <button class="btn" id="btnScnSave">Guardar/Atualizar</button>
+          <select id="scnList" style="min-width:220px"></select>
+          <button class="btn ghost" id="btnScnLoad">Aplicar</button>
+          <button class="btn ghost" id="btnScnDel">Apagar</button>
+        </div>
+      </div>
+
+      <div id="custKPI" class="kpis" style="margin-top:8px"></div>
+
+      <div class="panel tableWrap" style="margin-top:12px">
+        <div class="warn" id="fairWarn" style="display:none">Para uma comparação justa, define <b>ICE – Capex</b> e <b>ICE – Residual (%)</b>. Caso contrário, a linha ICE soma apenas combustível+manutenção e tenderá a parecer artificialmente mais barata.</div>
+        <div class="note" id="custAssum" style="margin-top:8px"></div>
+        <table id="tblCust">
+          <thead><tr><th class="l">Ano</th><th>Km/ano</th><th>Energia (kWh)</th><th>Energia (€)</th><th>Manutenção (€)</th><th>Depreciação (€)</th><th>Total anual (€)</th><th>Acumulado (€)</th><th>Acumulado + Capex (€)</th></tr></thead>
+          <tbody></tbody><tfoot></tfoot>
+        </table>
+      </div>
+
+      <div class="panel" style="margin-top:12px">
+        <h3 style="margin-top:0">Gráfico – custos anuais (barras) + Acumulado+Capex (linha)</h3>
+        <div class="legend">
+          <div class="item"><span class="sw" style="background:#34d399"></span><span>Energia</span></div>
+          <div class="item"><span class="sw" style="background:#60a5fa"></span><span>Manutenção</span></div>
+          <div class="item"><span class="sw" style="background:#f59e0b"></span><span>Depreciação</span></div>
+          <div class="item"><span class="sw" style="background:#8b5cf6"></span><span>EV: Acumulado + Capex</span></div>
+          <div class="item"><span class="sw" style="background:#475569"></span><span>ICE: Acumulado + Capex + Deprec.</span></div>
+        </div>
+        <svg id="chartBars"></svg>
+        <div class="row" style="gap:12px;margin-top:8px">
+          <details>
+            <summary><b>Payback vs. ICE (opcional)</b></summary>
+            <div class="grid g3" style="margin-top:8px">
+              <div><label>ICE – Consumo (L/100 km)</label><input type="number" id="ice_l100" value="6.5" step="0.1"></div>
+              <div><label>ICE – Preço combustível (€/L)</label><input type="number" id="ice_eur_l" value="1.85" step="0.01"></div>
+              <div><label>ICE – Manutenção/ano (€)</label><input type="number" id="ice_maint" value="650" step="10"></div>
+              <div><label>ICE – Capex (€)</label><input type="number" id="ice_capex" value="20000" step="100"></div>
+              <div><label>ICE – Residual (%)</label><input type="number" id="ice_resid" value="30" step="1" min="0" max="90"></div>
+              <div style="grid-column:1/-1" class="note">Se definires Capex e Residual, a comparação EV vs ICE passa a incluir <b>depreciação para ambos</b>, tornando o <b>payback</b> mais fiel.</div>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <div class="note">Acumulado "+ Capex" inclui o desembolso inicial (preço após retoma, s/ IVA). A depreciação é linear até ao valor residual.</div>
+    </div>
+  </div>
+
+  <!-- TAB: GLOSSÁRIO -->
+  <div id="tab-gloss" class="tab">
+    <div class="panel">
+      <h2>Glossário rápido</h2>
+      <ul>
+        <li><b>TCO</b>: “Total Cost of Ownership” – custo total por km (depreciação + energia + custos fixos).</li>
+        <li><b>kWh</b>: unidade de energia. Custo de energia em €/kWh.</li>
+        <li><b>kW</b>: potência. Em carregamento, dita a velocidade (kWh por hora).</li>
+        <li><b>WLTP</b>: ciclo normalizado para autonomia/consumo.</li>
+        <li><b>SoC</b>: “State of Charge” – % de bateria.</li>
+        <li><b>AC/DC</b>: Alterna (AC, casa) vs. Corrente Contínua (DC, fora).</li>
+        <li><b>Reserva</b>: margem de bateria que não contas usar (ex.: 10%).</li>
+      </ul>
+      <h3>Imagens – crédito</h3>
+      <p class="note">Model 3, Model Y e XPENG G6: Wikimedia Commons (CC BY‑SA 4.0).</p>
+    </div>
+  </div>
+</div>
+
+<div id="tip" class="tip"></div>
+<div id="toast" class="toast">Atualizado ✓ agora mesmo</div>
+
+<script>
+(function(){
+  const ROOT=document.documentElement; const q=(id)=>document.getElementById(id);
+  const fmt=(n,dec=0)=>Number(n).toLocaleString('pt-PT',{minimumFractionDigits:dec,maximumFractionDigits:dec});
+  function toast(txt){ const t=q('toast'); if(txt) t.textContent=txt; t.classList.add('show'); setTimeout(()=>{t.classList.remove('show'); t.textContent='Atualizado ✓ agora mesmo';},1400); }
+
+  const THEME_KEY='ev_simpl_tabs_theme';
+  const PREFS='ev_cmp_prefs_v3';
+  const IDS=['anos','kmAno','residual','fixosAno','reserva','retoma','casa_kW','casa_preco','casa_soc','fora_kW','fora_preco','fora_soc','w_custo','w_auto','w_space','orderBy','mixCasa','mixFora','scenE','scenKm','scenMan','scenMixFora','ice_l100','ice_eur_l','ice_maint','ice_capex','ice_resid'];
+  const SCEN_KEY='ev_cmp_scenarios_v1';
+
+  const DATA=[
+    {marca:'Tesla', modelo:'Model Y', precoSite:33313.01, wlpt_km:534, cap:60, cons:0.11, mala:854, pdc:120, frunk:117,
+     tracao:'RWD', cv:'≈295', nm:'≈430', zero100:'6,9 s', dims:'4751×1921×1624 mm',
+     img:'https://commons.wikimedia.org/wiki/Special:FilePath/Tesla%20Model%20Y%20Front%20View.jpg', extras:'—'},
+    {marca:'Tesla', modelo:'Model 3', precoSite:28455.28, wlpt_km:534, cap:60, cons:0.11, mala:594, pdc:120, frunk:88,
+     tracao:'RWD', cv:'≈260', nm:'≈440', zero100:'6,1 s', dims:'4720×1850×1440 mm',
+     img:'https://commons.wikimedia.org/wiki/Special:FilePath/2019_Tesla_Model_3_Performance_AWD_Front.jpg', extras:'—'},
+    {marca:'XPeng', modelo:'G6', precoSite:32260.16, wlpt_km:435, cap:66, cons:0.15, mala:571, pdc:280, frunk:0,
+     tracao:'RWD', cv:'≈280', nm:'440', zero100:'6,6 s', dims:'4753×1920×1650 mm',
+     img:'https://commons.wikimedia.org/wiki/Special:FilePath/XPeng%20G6%20003.jpg', extras:'—'}
+  ];
+
+  // Tabs
+  document.querySelectorAll('.tab-btn').forEach(btn=>{ btn.addEventListener('click',()=>{ document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); btn.classList.add('active'); q('tab-'+btn.dataset.tab).classList.add('active'); if(btn.dataset.tab==='cust'){ buildCostModelList(); computeCosts(); } }); });
+
+  // Tema + Reset + PDF
+  const applyTheme=()=>{ const t=localStorage.getItem(THEME_KEY)||'light'; if(t==='dark') ROOT.setAttribute('data-theme','dark'); else ROOT.removeAttribute('data-theme'); };
+  const toggleTheme=()=>{ const cur=localStorage.getItem(THEME_KEY)||'light'; const nxt=(cur==='light')?'dark':'light'; localStorage.setItem(THEME_KEY,nxt); applyTheme(); };
+  q('btnTheme').addEventListener('click',toggleTheme); applyTheme();
+  q('btnReset').addEventListener('click', ()=>{ localStorage.removeItem(PREFS); localStorage.removeItem(SCEN_KEY); location.reload(); });
+  q('btnPDF').addEventListener('click',()=>window.print());
+
+  // Prefs
+  function savePrefs(){ const p={}; IDS.forEach(id=>{ const el=q(id); if(el) p[id]=el.value; }); p.imgs = DATA.map(d=>({marca:d.marca, modelo:d.modelo, img:d.img||''})); localStorage.setItem(PREFS, JSON.stringify(p)); }
+  function loadPrefs(){ try{ const p=JSON.parse(localStorage.getItem(PREFS)||'null'); if(!p) return; IDS.forEach(id=>{ const el=q(id); if(el && p[id]!==undefined){ el.value=p[id]; }}); if(Array.isArray(p.imgs)){ p.imgs.forEach(s=>{ const d=DATA.find(x=>x.marca===s.marca && x.modelo===s.modelo); if(d && s.img) d.img=s.img; }); } toast('Preferências carregadas'); }catch(e){} }
+
+  // Cenários
+  function getScens(){ try{return JSON.parse(localStorage.getItem(SCEN_KEY)||'{}')}catch(e){return{}} }
+  function setScens(obj){ localStorage.setItem(SCEN_KEY, JSON.stringify(obj)); refreshScn(); }
+  function refreshScn(){ const sel=q('scnList'); if(!sel) return; const data=getScens(); const keys=Object.keys(data).sort(); sel.innerHTML=''; const opt=document.createElement('option'); opt.value=''; opt.textContent='— selecionar cenário —'; sel.appendChild(opt); keys.forEach(k=>{ const o=document.createElement('option'); o.value=k; o.textContent=k; sel.appendChild(o); }); }
+  function saveScn(){ const name=(q('scnName').value||'').trim(); if(!name){ toast('Dá um nome ao cenário'); return; } const data=getScens(); data[name]={ scenE:q('scenE').value, scenKm:q('scenKm').value, scenMan:q('scenMan').value, scenMixFora:q('scenMixFora').value }; setScens(data); q('scnList').value=name; toast('Cenário guardado'); }
+  function loadScn(){ const name=q('scnList').value; if(!name){ toast('Seleciona um cenário'); return; } const data=getScens(); const s=data[name]; if(!s){ toast('Cenário não encontrado'); return; } q('scenE').value=s.scenE; q('scenKm').value=s.scenKm; q('scenMan').value=s.scenMan; q('scenMixFora').value=s.scenMixFora; computeCosts(); savePrefs(); toast('Cenário aplicado: '+name); }
+  function delScn(){ const name=q('scnList').value; if(!name){ toast('Seleciona um cenário'); return; } const data=getScens(); delete data[name]; setScens(data); q('scnList').value=''; toast('Cenário apagado'); }
+
+  // Energia helpers
+  const mixClamp=()=>{ let c=+q('mixCasa').value||0; c=Math.max(0,Math.min(100,c)); q('mixCasa').value=c; q('mixFora').value=100-c; };
+  q('mixCasa').addEventListener('input',()=>{ mixClamp(); compute(); savePrefs(); });
+  q('mixFora').addEventListener('input',()=>{ let f=+q('mixFora').value||0; f=Math.max(0,Math.min(100,f)); q('mixFora').value=f; q('mixCasa').value=100-f; compute(); savePrefs(); });
+  function euroMix(){ const pc=+q('casa_preco').value||0.16; const pf=+q('fora_preco').value||0.40; const mc=(+q('mixCasa').value||0)/100; const mf=(+q('mixFora').value||0)/100; return pc*mc + pf*mf; }
+  function euroMixYear(yearIdx){ const pc=+q('casa_preco').value||0.16; const pf=+q('fora_preco').value||0.40; const baseFora=(+q('mixFora').value||0); const dpp=+q('scenMixFora').value||0; let fora=baseFora + dpp*yearIdx; fora=Math.max(0,Math.min(100,fora)); const casa=100-fora; const growth=(+q('scenE').value||0)/100; const mult=Math.pow(1+growth, yearIdx); return (pc*mult)*(casa/100) + (pf*mult)*(fora/100); }
+
+  // Compute principal (Simulação)
+  function getImg(d){ return (d.img && d.img.trim()) ? d.img.trim() : '' }
+  function compute(){
+    const anos= +q('anos').value||10; const kmAno= +q('kmAno').value||10000; const residual=(+q('residual').value||30)/100; const fixosAno= +q('fixosAno').value||450; const reserva=(+q('reserva').value||10)/100; const retoma= +q('retoma').value||0;
+    const euro_use=euroMix(); const euro_casa=+q('casa_preco').value||0.16; const euro_fora=+q('fora_preco').value||0.40; const penAE=0.20, penInv=0.15; const vDC= +q('fora_kW').value || 120;
+    const rows=[];
+    DATA.forEach(d=>{ const preco=d.precoSite; const precoApos=Math.max(0,preco-retoma); const eur_km_energia = d.cons*euro_use; const eur_km_capex=(anos>0&&kmAno>0)?((precoApos*(1-residual))/(anos*kmAno)):0; const tco_km=eur_km_capex+eur_km_energia+((kmAno>0)?(fixosAno/kmAno):0); const tco_mes=tco_km*(kmAno/12); const aut_verao=d.wlpt_km*(1-reserva)*(1-penAE); const aut_inv=aut_verao*(1-penInv); const t1080=(0.70*d.cap)/(vDC>0?vDC:120)*60; const e100_casa=100*d.cons*euro_casa; const e100_fora=100*d.cons*euro_fora; rows.push({key:d.marca+' '+d.modelo, marca:d.marca, modelo:d.modelo, img:getImg(d), preco, precoApos, cap:d.cap, cons:d.cons, eur100:100*eur_km_energia, eurCapex:eur_km_capex, tco_km, tco_mes, aut_verao, aut_inv, t1080, mala:d.mala, e100_casa, e100_fora}); });
+    // scoring
+    const mm=(key)=>{const arr=rows.map(r=>r[key]); return {min:Math.min(...arr), max:Math.max(...arr)}}; const mtco=mm('tco_km'), maut=mm('aut_inv'), mma=mm('mala');
+    let wC=+q('w_custo').value||0, wA=+q('w_auto').value||0, wS=+q('w_space').value||0; const wSum=(wC+wA+wS)>0?(wC+wA+wS):1; wC/=wSum; wA/=wSum; wS/=wSum;
+    rows.forEach(r=>{ const norm=(v,m)=> (m.max>m.min)?((v-m.min)/(m.max-m.min)) : 1; const s_cost=1-norm(r.tco_km, mtco); const s_auto=norm(r.aut_inv, maut); const s_space=norm(r.mala, mma); r.score=Math.round(100*(wC*s_cost+wA*s_auto+wS*s_space)); });
+    const orderBy=q('orderBy').value; rows.sort((a,b)=> (orderBy==='score') ? (b.score-a.score) : (a.tco_km-b.tco_km));
+
+    // Cartões topo
+    const cardsTop=q('cardsTop'); cardsTop.innerHTML=''; const bestTCO=[...rows].sort((a,b)=>a.tco_km-b.tco_km)[0]; const bestSc=[...rows].sort((a,b)=>b.score-a.score)[0];
+    rows.forEach(r=>{ const div=document.createElement('div'); div.className='carCard'; div.innerHTML = `
+        <img loading=\"lazy\" src=\"${r.img}\" alt=\"${r.marca} ${r.modelo}\">\n        <div class=\"carCardBody\">\n          <div class=\"cardPrice\"><div class=\"small\">€ inicial (após retoma)</div><div><b>${fmt(r.precoApos,2)} €</b></div></div>\n          <div class=\"row\" style=\"justify-content:space-between\"><div><b>${r.marca} ${r.modelo}</b></div><div class=\"badgeMix\"><span class=\"badgeCasa\">Casa ${fmt(+q('mixCasa').value,0)}%</span><span class=\"badgeFora\">Fora ${fmt(+q('mixFora').value,0)}%</span></div></div>\n          <div class=\"row\" style=\"justify-content:space-between;margin-top:6px\"><div class=\"small\">TCO</div><div><b>${fmt(r.tco_km,3)} €/km</b></div></div>\n          <div class=\"row\" style=\"justify-content:space-between\"><div class=\"small\">Energia (mix)</div><div><b>${fmt(r.eur100,2)} €/100 km</b></div></div>\n        </div>`; 
+        div.addEventListener('click',()=>{ const sel=q('costModel'); if(sel){ sel.value=r.marca+'|'+r.modelo; document.querySelector('.tab-btn[data-tab=\"cust\"]').click(); }}); 
+        cardsTop.appendChild(div); 
+    });
+
+    // Tabela
+    const tbody=document.getElementById('tbl')?.querySelector('tbody'); if(tbody){ tbody.innerHTML=''; rows.forEach((r,i)=>{ const tr=document.createElement('tr'); const td=(v,cls)=>{const x=document.createElement('td'); x.innerHTML=v; if(cls)x.className=cls; return x}; tr.appendChild(td(`<img loading='lazy' class='thumb' src='${r.img}' alt='${r.marca} ${r.modelo}'>`)); tr.appendChild(td(r.marca,'l')); tr.appendChild(td(r.modelo,'l')); tr.appendChild(td(fmt(r.preco,2))); tr.appendChild(td(fmt(r.precoApos,2))); tr.appendChild(td(fmt(r.cap,1))); tr.appendChild(td(fmt(r.cons,3))); tr.appendChild(td(fmt(r.eur100,2))); tr.appendChild(td(fmt(r.eurCapex,3))); tr.appendChild(td(fmt(r.tco_km,3))); tr.appendChild(td(fmt(r.tco_mes,0))); tr.appendChild(td(fmt(r.aut_verao,0))); tr.appendChild(td(fmt(r.aut_inv,0))); tr.appendChild(td(fmt(r.t1080,1))); tr.appendChild(td(fmt(r.score,0))); tr.appendChild(td(r.mala+' L','l')); tbody.appendChild(tr); }); }
+
+    // KPIs
+    const k=q('kpis'); k.innerHTML=''; const kpi=(t,m,s)=>{const d=document.createElement('div'); d.className='kpi'; d.innerHTML=`<div>${t}</div><b>${m}</b><div>${s}</div>`; k.appendChild(d)}
+    kpi('Melhor TCO', bestTCO.marca+' '+bestTCO.modelo, fmt(bestTCO.tco_km,3)+' EUR/km · '+fmt(bestTCO.tco_mes,0)+' EUR/mês');
+    kpi('Recomendação (pesos atuais)', `<span class='badge'>Recomendado</span> ${bestSc.marca} ${bestSc.modelo}`, `Score ${bestSc.score}/100 · TCO ${fmt(bestSc.tco_km,3)} EUR/km`);
+    const arr=rows.map(x=>x.eur100); kpi('Energia (mix atual)', fmt(Math.min(...arr),2)+' – '+fmt(Math.max(...arr),2)+' EUR','/100 km');
+
+    // Cards Casa vs Fora
+    const cards=q('cardsEF'); if(cards){ cards.innerHTML=''; rows.forEach(r=>{ const div=document.createElement('div'); div.className='cardMini'; const diff=r.e100_fora-r.e100_casa; const pct=(r.e100_casa>0)?(diff/r.e100_casa*100):0; div.innerHTML=`<h3>${r.marca} ${r.modelo}</h3><div class='row' style='gap:20px'><div><div class='small'>Casa</div><div><b>${fmt(r.e100_casa,2)} €</b> / 100 km</div></div><div><div class='small'>Fora (DC)</div><div><b>${fmt(r.e100_fora,2)} €</b> / 100 km</div></div></div><div class='note' style='margin-top:6px'>Diferença: <span>${diff>=0?'+':''}${fmt(diff,2)} €</span> (${diff>=0?'+':''}${fmt(pct,1)}%)</div>`; cards.appendChild(div); }); }
+
+    q('upd').textContent='Atualizado agora mesmo'; toast(); setTimeout(()=>{ q('upd').textContent=''; },1500);
+  }
+
+  // Custos (tab)
+  function td(v,cls){ const x=document.createElement('td'); x.textContent=v; if(cls) x.className=cls; return x }
+
+  function computeCosts(){
+    const anos= +q('anos').value||10; let kmAno= +q('kmAno').value||10000; const residual=(+q('residual').value||30)/100; let fixosAno= +q('fixosAno').value||450; const retoma= +q('retoma').value||0;
+    const scenE=(+q('scenE').value||0)/100; const scenKm=(+q('scenKm').value||0)/100; const scenMan=(+q('scenMan').value||0)/100;
+
+    const iceL= +q('ice_l100').value||0; const iceE= +q('ice_eur_l').value||0; const iceMan= +q('ice_maint').value||0; const iceCapex= +q('ice_capex').value||0; const iceResid=(+q('ice_resid').value||0)/100;
+
+    const key=q('costModel').value || (DATA[0].marca+'|'+DATA[0].modelo); const d=DATA.find(x=> (x.marca+'|'+x.modelo)===key) || DATA[0];
+    const preco=d.precoSite; const precoApos=Math.max(0,preco-retoma); const residVal=precoApos*((+q('residual').value||30)/100); const depTotal=precoApos-residVal; const depAno = ((+q('anos').value||10) > 0) ? (depTotal/(+q('anos').value||10)) : 0;
+
+    q('custAssum').textContent = `Assunções: ${d.marca} ${d.modelo} · Preço após retoma: ${fmt(precoApos,2)} € · Mix base Casa/Fora (ano 1): ${fmt(+q('mixCasa').value,0)}% / ${fmt(+q('mixFora').value,0)}% · Δ Mix Fora/ano: ${fmt(+q('scenMixFora').value,0)} p.p. · Cresc. energia: ${fmt(+q('scenE').value,1)}%/ano · Cresc. km: ${fmt(+q('scenKm').value,1)}%/ano · Cresc. manutenção: ${fmt(+q('scenMan').value,1)}%/ano`;
+
+    // Aviso de justiça
+    q('fairWarn').style.display = (iceCapex<=0) ? 'block':'none';
+
+    const tbody=q('tblCust').querySelector('tbody'); const tfoot=q('tblCust').querySelector('tfoot'); tbody.innerHTML=''; tfoot.innerHTML='';
+    let acumul=0; let acumulComCapex=precoApos; let totEner=0, totMan=0, totDep=0, totAnual=0; const arrEner=[], arrMan=[], arrDep=[], arrYears=[], arrCum=[], arrICEcum=[];
+
+    const iceDepTotal = iceCapex * (1 - iceResid); const iceDepAno = ((+q('anos').value||10)>0)? (iceDepTotal/(+q('anos').value||10)) : 0; let iceCum = iceCapex;
+
+    for(let a=1;a<=anos;a++){
+      const kmA = Math.round(kmAno * Math.pow(1+scenKm, a-1));
+      const manA = fixosAno * Math.pow(1+scenMan, a-1);
+      const euro_mix_year = euroMixYear(a-1);
+      const e_km_year = d.cons * euro_mix_year; const energia = e_km_year * kmA; const kwh_ano = d.cons * kmA; const deprec = depAno; const total = energia + manA + deprec; acumul += total; acumulComCapex += total; totEner+=energia; totMan+=manA; totDep+=deprec; totAnual+=total;
+      const iceRun = (iceL/100)*kmA*iceE + iceMan + iceDepAno; iceCum += iceRun;
+      arrEner.push(energia); arrMan.push(manA); arrDep.push(deprec); arrYears.push(a); arrCum.push(acumulComCapex); arrICEcum.push(iceCum);
+      const tr=document.createElement('tr'); tr.appendChild(td(a,'l')); tr.appendChild(td(fmt(kmA,0))); tr.appendChild(td(fmt(kwh_ano,0))); tr.appendChild(td(fmt(energia,2))); tr.appendChild(td(fmt(manA,2))); tr.appendChild(td(fmt(deprec,2))); tr.appendChild(td(fmt(total,2))); tr.appendChild(td(fmt(acumul,2))); tr.appendChild(td(fmt(acumulComCapex,2))); tbody.appendChild(tr);
+    }
+
+    const trTot=document.createElement('tr'); trTot.innerHTML=`<td class='l'><b>Totais (${anos} anos)</b></td><td>${fmt(arrYears.reduce((s,x,i)=> s + Math.round((+q('kmAno').value||10000)*Math.pow(1+scenKm,i)),0),0)}</td><td>${fmt(arrYears.reduce((s,x,i)=> s + (DATA.find(y=> (y.marca+'|'+y.modelo)===key)||d).cons * Math.round((+q('kmAno').value||10000)*Math.pow(1+scenKm,i)),0),0)}</td><td><b>${fmt(totEner,2)}</b></td><td><b>${fmt(totMan,2)}</b></td><td><b>${fmt(totDep,2)}</b></td><td><b>${fmt(totAnual,2)}</b></td><td><b>${fmt(acumul,2)}</b></td><td><b>${fmt(acumulComCapex,2)}</b></td>`; tfoot.appendChild(trTot);
+
+    // KPIs
+    const k=q('custKPI'); k.innerHTML=''; const kpi=(t,m,s)=>{const d=document.createElement('div'); d.className='kpi'; d.innerHTML=`<div>${t}</div><b>${m}</b><div>${s}</div>`; k.appendChild(d)}
+    kpi('Desembolso inicial (EV)', fmt(precoApos,2)+' €','s/ IVA, após retoma');
+    kpi('ICE Capex', fmt(iceCapex,2)+' €', 'usado para depreciação');
+    const payIdx = findPayback(arrCum, arrICEcum);
+    kpi('Payback', (payIdx>=0?`Ano ${arrYears[payIdx]}`:'—'), (payIdx>=0?'EV ≤ ICE acumulado':'Necessita inputs ICE realistas'));
+
+    drawBars(arrYears, arrEner, arrMan, arrDep, arrCum, arrICEcum, payIdx);
+  }
+
+  function findPayback(ev, ice){ for(let i=0;i<ev.length;i++){ if(ev[i]<=ice[i]) return i; } return -1; }
+
+  // ===== PATCH: largura segura e clamps no gráfico =====
+  function safeChartWidth(svg){ const br = svg.getBoundingClientRect(); let w = Math.max(br.width||0, svg.clientWidth||0); if(!isFinite(w) || w < 1) w = 800; return w; }
+
+  function drawBars(years, ener, man, dep, cum, ice, payIdx){
+    const svg=q('chartBars'); while(svg.firstChild) svg.removeChild(svg.firstChild);
+    const ns='http://www.w3.org/2000/svg';
+    const pL=54,pR=20,pT=12,pB=32; const x0=pL, y1=pT; let w=safeChartWidth(svg); const x1=w-pR; const h=svg.clientHeight||360; const y0=h-pB;
+    const n = Math.max(1, years.length);
+    const totals=years.map((_,i)=> ener[i]+man[i]+dep[i]);
+    const ymax=Math.max(...totals.concat(cum||[]).concat(ice||[]).concat([1]));
+    const span = Math.max(1, x1-x0);
+    const step = span / n;
+    const bw = Math.max(1, step*0.64);
+    const gap = Math.max(0, step - bw);
+    const xAt=(i)=> x0 + i*step + gap/2; const yMap=(v)=> y0 - (y0-y1)*(v/ymax);
+
+    // Eixos
+    const ax=document.createElementNS(ns,'line'); ax.setAttribute('x1',x0); ax.setAttribute('y1',y0); ax.setAttribute('x2',x1); ax.setAttribute('y2',y0); ax.setAttribute('stroke','#94a3b8'); svg.appendChild(ax);
+    const ay=document.createElementNS(ns,'line'); ay.setAttribute('x1',x0); ay.setAttribute('y1',y0); ay.setAttribute('x2',x0); ay.setAttribute('y2',y1); ay.setAttribute('stroke','#94a3b8'); svg.appendChild(ay);
+
+    for(let k=0;k<=5;k++){ const v=ymax*k/5; const ty=document.createElementNS(ns,'text'); ty.setAttribute('x',x0-8); ty.setAttribute('y',yMap(v)); ty.setAttribute('text-anchor','end'); ty.setAttribute('dominant-baseline','central'); ty.setAttribute('font-size','11'); ty.setAttribute('fill','#64748b'); ty.textContent=fmt(v,0); svg.appendChild(ty); }
+    years.forEach((yr,i)=>{ const tx=document.createElementNS(ns,'text'); tx.setAttribute('x',xAt(i)+bw/2); tx.setAttribute('y',y0+18); tx.setAttribute('text-anchor','middle'); tx.setAttribute('font-size','11'); tx.setAttribute('fill','#64748b'); tx.textContent=yr; svg.appendChild(tx); });
+
+    // Barras empilhadas
+    const colors=['#34d399','#60a5fa','#f59e0b']; const stacks=[ener,man,dep];
+    years.forEach((yr,i)=>{ let base=0; stacks.forEach((arr,si)=>{ const v=arr[i]; const y=yMap(base+v); const yb=yMap(base); const rect=document.createElementNS(ns,'rect'); rect.setAttribute('x',xAt(i)); rect.setAttribute('y',y); rect.setAttribute('width',bw); rect.setAttribute('height',Math.max(0,yb-y)); rect.setAttribute('fill',colors[si]); svg.appendChild(rect); base+=v; }); });
+
+    // Linhas
+    if(cum && cum.length){ const path=document.createElementNS(ns,'path'); let d=''; years.forEach((yr,i)=>{ const x=xAt(i)+bw/2; const y=yMap(cum[i]); d+= (i===0?`M ${x} ${y}`:` L ${x} ${y}`); }); path.setAttribute('d',d); path.setAttribute('fill','none'); path.setAttribute('stroke','#8b5cf6'); path.setAttribute('stroke-width','2'); svg.appendChild(path); }
+    if(ice && ice.length){ const path2=document.createElementNS(ns,'path'); let d2=''; years.forEach((yr,i)=>{ const x=xAt(i)+bw/2; const y=yMap(ice[i]); d2+= (i===0?`M ${x} ${y}`:` L ${x} ${y}`); }); path2.setAttribute('d',d2); path2.setAttribute('fill','none'); path2.setAttribute('stroke','#475569'); path2.setAttribute('stroke-dasharray','5,5'); path2.setAttribute('stroke-width','2'); svg.appendChild(path2); }
+
+    if(typeof payIdx==='number' && payIdx>=0){ const x=xAt(payIdx)+bw/2; const y=yMap(cum[payIdx]); const c=document.createElementNS(ns,'circle'); c.setAttribute('cx',x); c.setAttribute('cy',y); c.setAttribute('r',5); c.setAttribute('fill','#8b5cf6'); c.setAttribute('stroke','#fff'); c.setAttribute('stroke-width','2'); svg.appendChild(c); const lbl=document.createElementNS(ns,'text'); lbl.setAttribute('x',x+6); lbl.setAttribute('y',y-8); lbl.setAttribute('fill','#8b5cf6'); lbl.setAttribute('font-size','12'); lbl.textContent='Payback'; svg.appendChild(lbl); }
+
+    // Tooltip overlay — largura segura
+    const overlay=document.createElementNS(ns,'rect'); overlay.setAttribute('x',x0); overlay.setAttribute('y',y1); overlay.setAttribute('width',span); overlay.setAttribute('height',Math.max(0,y0-y1)); overlay.setAttribute('fill','transparent'); svg.appendChild(overlay);
+    const tip=document.getElementById('tip');
+    overlay.addEventListener('mousemove',(evt)=>{ const pt=svg.getBoundingClientRect(); const mx=evt.clientX-pt.left; if(mx<x0||mx>x1){ tip.style.display='none'; return; } let i=Math.floor((mx-x0)/step); i=Math.max(0,Math.min(years.length-1,i)); const yr=years[i]; const e=ener[i], m=man[i], d=dep[i]; const t=e+m+d; const ce=cum?cum[i]:0; const ic=ice?ice[i]:0; tip.style.display='block'; tip.innerHTML=`<b>Ano ${yr}</b><br>Energia: <b>${fmt(e,2)}€</b><br>Manutenção: <b>${fmt(m,2)}€</b><br>Depreciação: <b>${fmt(d,2)}€</b><br>Total anual: <b>${fmt(t,2)}€</b>${(ce?`<br>EV acum+capex: <b>${fmt(ce,2)}€</b>`:'')}${(ic?`<br>ICE acum+capex+deprec: <b>${fmt(ic,2)}€</b>`:'')}`; tip.style.left=(evt.clientX+12)+'px'; tip.style.top=(evt.clientY+12)+'px'; });
+    overlay.addEventListener('mouseleave',()=>{ tip.style.display='none'; });
+  }
+
+  // Build Characteristics
+  function buildCarac(){ const tb=q('caracBody'); if(!tb) return; tb.innerHTML=''; DATA.forEach((d,i)=>{ const tr=document.createElement('tr'); const td=(html,cls)=>{const x=document.createElement('td'); if(cls) x.className=cls; x.innerHTML=html; return x}; const cell=(val,id)=>`<input id='${id}' type='text' value='${val||''}' style='width:100%;padding:6px 8px;border-radius:8px;border:1px solid #d6dbe6;background:#fbfcff'>`; tr.appendChild(td(`<b>${d.marca} ${d.modelo}</b>`,'l')); tr.appendChild(td(cell(d.wlpt_km,`c_wltp_${i}`))); tr.appendChild(td(cell(d.cap,`c_cap_${i}`))); tr.appendChild(td(cell(d.cons,`c_cons_${i}`))); tr.appendChild(td(cell(d.mala,`c_mala_${i}`))); tr.appendChild(td(cell(d.pdc,`c_pdc_${i}`))); tr.appendChild(td(cell(d.tracao,`c_trac_${i}`))); tr.appendChild(td(cell(d.cv,`c_cv_${i}`))); tr.appendChild(td(cell(d.nm,`c_nm_${i}`))); tr.appendChild(td(cell(d.zero100,`c_z_${i}`))); tr.appendChild(td(cell(d.dims,`c_dims_${i}`))); tr.appendChild(td(cell(d.img,`c_img_${i}`))); tr.appendChild(td(cell(d.extras,`c_ex_${i}`))); tb.appendChild(tr); }); }
+
+  // Build cost model list
+  function buildCostModelList(){ const sel=q('costModel'); sel.innerHTML=''; DATA.forEach(d=>{ const o=document.createElement('option'); o.value=d.marca+'|'+d.modelo; o.textContent=d.marca+' '+d.modelo; sel.appendChild(o); }); }
+
+  // Events
+  document.getElementById('btnCalc')?.addEventListener('click',()=>{ compute(); savePrefs(); });
+  ['anos','kmAno','residual','fixosAno','reserva','retoma','casa_kW','casa_preco','casa_soc','fora_kW','fora_preco','fora_soc','w_custo','w_auto','w_space','orderBy','scenE','scenKm','scenMan','scenMixFora','ice_l100','ice_eur_l','ice_maint','ice_capex','ice_resid']
+    .forEach(id=>{ const el=q(id); if(el){ el.addEventListener('input', ()=>{ compute(); computeCosts(); savePrefs(); }); el.addEventListener('change', ()=>{ compute(); computeCosts(); savePrefs(); }); }});
+
+  document.addEventListener('change', (ev)=>{ if(ev.target && ev.target.id==='costModel'){ computeCosts(); }});
+  q('btnScnSave')?.addEventListener('click',saveScn); q('btnScnLoad')?.addEventListener('click',loadScn); q('btnScnDel')?.addEventListener('click',delScn);
+
+  // Boot
+  buildCarac(); buildCostModelList(); refreshScn(); loadPrefs(); compute(); computeCosts();
+})();
+</script>
+</body>
+</html>
