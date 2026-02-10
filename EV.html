@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>EV - Compra Miguel</title>
+<title>Comparação Compra EV</title>
 <style>
 :root{ --bg:#f6f8fb; --text:#0f172a; --muted:#5b6b88; --card:#ffffff; --line:#e5e9f2; --accent:#0ea5a5; --accent-2:#2563eb; --good:#16a34a; --warn:#f59e0b; --bad:#ef4444; --chip:#eef2ff }
 [data-theme="dark"]{ --bg:#0b1020; --text:#e6ecff; --muted:#93a2c6; --card:#131a2f; --line:#24314f; --accent:#22b5b5; --accent-2:#6ea8fe; --chip:#0f1b39 }
@@ -51,12 +51,19 @@ svg{width:100%;height:360px;background:#fff;border:1px solid var(--line);border-
 .legend .item{display:flex;align-items:center;gap:6px}
 .legend .sw{width:12px;height:12px;border-radius:3px}
 .thumb{width:64px;height:40px;object-fit:cover;border:1px solid var(--line);border-radius:8px;background:#fff}
-.carCard{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card)}
+.carCard{position:relative;border:0;border-radius:12px;overflow:hidden;background:var(--card)}
+.carCard::before{content:'';position:absolute;inset:0;border:1px solid var(--line);border-radius:12px;pointer-events:none}
+
 .carCard img{width:100%;height:160px;object-fit:cover;display:block}
+.carImg{height:160px;background-size:cover;background-position:center;background-repeat:no-repeat;display:block}
+
 .carCardBody{padding:10px}
 .cardPrice{margin:6px 0 4px 0;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:#f8fafc;color:#0f172a;display:flex;justify-content:space-between;align-items:center}
 [data-theme="dark"] .cardPrice{background:#0f162d;color:#e6ecff;border-color:#2b3a66}
 .ribbon{position:absolute;top:8px;left:8px;background:#22c55e;color:#fff;font-weight:800;font-size:12px;padding:4px 8px;border-radius:8px}
+.rmCard{position:absolute;top:8px;right:8px;background:#fff;border:1px solid var(--line);color:#e11d48;border-radius:999px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:900;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.06);z-index:5}
+[data-theme="dark"] .rmCard{background:#0f162d;border-color:#2b3a66;color:#fda4af}
+.rmCard:hover{background:#fee2e2;border-color:#fca5a5}
 .badgeMix{display:inline-flex;gap:6px;align-items:center}
 .badgeMix span{padding:2px 6px;border-radius:999px;font-weight:700;font-size:11px}
 .badgeCasa{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
@@ -65,12 +72,19 @@ tr.best-row{outline:2px solid #22c55e;outline-offset:-2px}
 tr.rec-row{outline:2px dashed #2563eb;outline-offset:-2px}
 .tip{position:fixed;pointer-events:none;background:rgba(15,23,42,.95);color:#e2e8f0;padding:8px 10px;border-radius:8px;font-size:12px;line-height:1.35;box-shadow:0 8px 18px rgba(0,0,0,.35);z-index:999;display:none}
 @media print{ .tabs,.stickyBar,.btn,.tab-btn,.legend .item:nth-child(3),#tbl,.tableWrap,.panel input,.panel select,.panel label,#scnBar{display:none !important} .wrap{max-width:100%;padding:8mm} svg{height:300px} .panel{box-shadow:none;border:0;padding:0} }
+
+[data-theme="dark"] input[type=text],
+[data-theme="dark"] input[type=number],
+[data-theme="dark"] select,
+[data-theme="dark"] textarea{background:#0f162d!important;color:#e6ecff!important;border-color:#2b3a66!important}
+[data-theme="dark"] ::placeholder{color:#93a2c6;opacity:1}
+
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="row" style="justify-content:space-between;align-items:center">
-    <h1>EV - Compra Miguel</h1>
+    <h1>Comparação Compra EV</h1>
     <div class="row">
       <button class="btn ghost" id="btnPDF">Exportar PDF (Resumo)</button>
       <button class="btn ghost" id="btnTheme">Dark mode</button>
@@ -149,10 +163,25 @@ tr.rec-row{outline:2px dashed #2563eb;outline-offset:-2px}
       </div>
     </div>
 
+    <!-- 4º carro (auto) -->
+    <div class="panel" style="margin-top:12px">
+      <h2>Adicionar carro (auto) <span class="small">(máx. 4)</span></h2>
+      <div class="grid g3">
+        <div><label>Marca</label><input type="text" id="autoMarca" placeholder="ex.: Tesla"></div>
+        <div><label>Modelo</label><input type="text" id="autoModelo" placeholder="ex.: Model S"></div>
+        <div><label>Preço (EUR, s/ IVA) <span class="small">(opcional)</span></label><input type="number" id="autoPreco" min="0" step="50" placeholder="ex.: 30000"></div>
+      </div>
+      <div class="row" style="margin-top:8px;gap:8px">
+        <button class="btn" id="btnAutoCar">Procurar & Adicionar</button>
+        <button class="btn ghost" id="btnAutoClear">Remover carro adicionado</button>
+        <span class="note">Tenta obter imagem + dados públicos (Wikipedia). Se faltarem números, uso estimativas e podes afiná-los na aba <b>Características</b>.</span>
+      </div>
+    </div>
+
     <div class="kpis" id="kpis" style="margin-top:12px"></div>
 
     <div class="panel tableWrap" style="margin-top:12px">
-      <div class="row" style="justify-content:space-between;align-items:center"><h2>Resultados (ordenado conforme seleção)</h2><div class="row"><button class="btn" id="btnCalc">Recalcular</button></div></div>
+      <div class="row" style="justify-content:space-between;align-items:center"><h2>Resultados (ordenado conforme seleção)</h2><div class="row" style="gap:8px"><button class="btn" id="btnCalc">Recalcular</button><button class="btn ghost" id="btnCarsExport">Exportar carros (CSV)</button><button class="btn ghost" id="btnCarsImport">Importar carros (CSV)</button><input type="file" id="carsCSVfile" accept=".csv,text/csv" style="display:none"></div></div>
       <table id="tbl"><thead><tr><th>Foto</th><th class="l">Marca</th><th class="l">Modelo</th><th>Preço (EUR, s/ IVA)</th><th><b>Preço após retoma (EUR)</b></th><th>Cap. útil (kWh)</th><th>Consumo (kWh/km)</th><th>EUR energia / 100 km</th><th>EUR capex / km</th><th><b>TCO EUR/km</b></th><th>TCO EUR/mês</th><th>Aut AE verão (km)</th><th>Aut AE inverno (km)</th><th>10–80% (min) DC</th><th>Score (0–100)</th><th class="l">Mala (L)</th></tr></thead><tbody></tbody></table>
       <div class="note">Tudo “sem IVA”. TCO_km = depreciação/km + energia/km + fixos/km. Mix Casa/Fora aplicado ao custo de energia.</div>
     </div>
@@ -285,7 +314,9 @@ tr.rec-row{outline:2px dashed #2563eb;outline-offset:-2px}
   const fmt=(n,dec=0)=>Number(n).toLocaleString('pt-PT',{minimumFractionDigits:dec,maximumFractionDigits:dec});
   function toast(txt){ const t=q('toast'); if(txt) t.textContent=txt; t.classList.add('show'); setTimeout(()=>{t.classList.remove('show'); t.textContent='Atualizado ✓ agora mesmo';},1400); }
 
-  const THEME_KEY='ev_simpl_tabs_theme';
+  
+ function toNumber(v){ if(v===null||v===undefined) return 0; if(typeof v!== 'string') return Number(v)||0; let s=v.trim().replace(/\s+/g,''); const hasC=s.includes(','); const hasD=s.includes('.'); if(hasC&&hasD){ s=s.replace(/\./g,'').replace(',', '.'); } else if(hasC&&!hasD){ s=s.replace(',', '.'); } const n=parseFloat(s); return isFinite(n)? n:0; }
+const THEME_KEY='ev_simpl_tabs_theme';
   const PREFS='ev_cmp_prefs_v3';
   const IDS=['anos','kmAno','residual','fixosAno','reserva','retoma','casa_kW','casa_preco','casa_soc','fora_kW','fora_preco','fora_soc','w_custo','w_auto','w_space','orderBy','mixCasa','mixFora','scenE','scenKm','scenMan','scenMixFora','ice_l100','ice_eur_l','ice_maint','ice_capex','ice_resid'];
   const SCEN_KEY='ev_cmp_scenarios_v1';
@@ -309,13 +340,21 @@ tr.rec-row{outline:2px dashed #2563eb;outline-offset:-2px}
   const applyTheme=()=>{ const t=localStorage.getItem(THEME_KEY)||'light'; if(t==='dark') ROOT.setAttribute('data-theme','dark'); else ROOT.removeAttribute('data-theme'); };
   const toggleTheme=()=>{ const cur=localStorage.getItem(THEME_KEY)||'light'; const nxt=(cur==='light')?'dark':'light'; localStorage.setItem(THEME_KEY,nxt); applyTheme(); };
   q('btnTheme').addEventListener('click',toggleTheme); applyTheme();
-  q('btnReset').addEventListener('click', ()=>{ localStorage.removeItem(PREFS); localStorage.removeItem(SCEN_KEY); location.reload(); });
+  q('btnReset').addEventListener('click', ()=>{ localStorage.removeItem(PREFS); localStorage.removeItem(SCEN_KEY); localStorage.removeItem('ev_cmp_custom_car_v1'); location.reload(); });
   q('btnPDF').addEventListener('click',()=>window.print());
 
   // Prefs
-  function savePrefs(){ const p={}; IDS.forEach(id=>{ const el=q(id); if(el) p[id]=el.value; }); p.imgs = DATA.map(d=>({marca:d.marca, modelo:d.modelo, img:d.img||''})); localStorage.setItem(PREFS, JSON.stringify(p)); }
-  function loadPrefs(){ try{ const p=JSON.parse(localStorage.getItem(PREFS)||'null'); if(!p) return; IDS.forEach(id=>{ const el=q(id); if(el && p[id]!==undefined){ el.value=p[id]; }}); if(Array.isArray(p.imgs)){ p.imgs.forEach(s=>{ const d=DATA.find(x=>x.marca===s.marca && x.modelo===s.modelo); if(d && s.img) d.img=s.img; }); } toast('Preferências carregadas'); }catch(e){} }
-
+  function savePrefs(){ const p={}; IDS.forEach(id=>{ const el=q(id); if(el) p[id]=el.value; }); p.imgs = DATA.map(d=>({marca:d.marca, modelo:d.modelo, img:d.img||''})); try{ const c=DATA.find(d=>d.__custom===true); if(c){ p.custom = {marca:c.marca, modelo:c.modelo, precoSite:c.precoSite, wlpt_km:c.wlpt_km, cap:c.cap, cons:c.cons, img:c.img, extras:c.extras}; } }catch(e){} localStorage.setItem(PREFS, JSON.stringify(p)); }
+  function loadPrefs(){
+  try{ const p = JSON.parse(localStorage.getItem(PREFS)||'null'); if(!p) return;
+    IDS.forEach(id=>{ const el=q(id); if(el && p[id]!==undefined) el.value=p[id]; });
+    if(Array.isArray(p.cars) && p.cars.length>=0 && p.cars.length<=4){ DATA.length=0; p.cars.forEach(c=> DATA.push(Object.assign({}, c))); }
+    if(Array.isArray(p.imgs)){ p.imgs.forEach(s=>{ const d=DATA.find(x=>x.marca===s.marca && x.modelo===s.modelo); if(d && s.img) d.img=s.img; }); }
+    if(Array.isArray(p.carac)){ p.carac.forEach(c=>{ const d=DATA.find(x=>x.marca===c.marca && x.modelo===c.modelo); if(d) Object.assign(d,c); }); }
+    if((!Array.isArray(p.cars) || p.cars.length===0) && p.custom && p.custom.marca && p.custom.modelo){ upsertCustomIntoDATA(Object.assign({}, p.custom, {__custom:true})); }
+    toast('Preferências carregadas');
+  }catch(e){}
+}
   // Cenários
   function getScens(){ try{return JSON.parse(localStorage.getItem(SCEN_KEY)||'{}')}catch(e){return{}} }
   function setScens(obj){ localStorage.setItem(SCEN_KEY, JSON.stringify(obj)); refreshScn(); }
@@ -331,25 +370,127 @@ tr.rec-row{outline:2px dashed #2563eb;outline-offset:-2px}
   function euroMix(){ const pc=+q('casa_preco').value||0.16; const pf=+q('fora_preco').value||0.40; const mc=(+q('mixCasa').value||0)/100; const mf=(+q('mixFora').value||0)/100; return pc*mc + pf*mf; }
   function euroMixYear(yearIdx){ const pc=+q('casa_preco').value||0.16; const pf=+q('fora_preco').value||0.40; const baseFora=(+q('mixFora').value||0); const dpp=+q('scenMixFora').value||0; let fora=baseFora + dpp*yearIdx; fora=Math.max(0,Math.min(100,fora)); const casa=100-fora; const growth=(+q('scenE').value||0)/100; const mult=Math.pow(1+growth, yearIdx); return (pc*mult)*(casa/100) + (pf*mult)*(fora/100); }
 
+  // 4º carro (auto) helpers
+  const CUSTOM_KEY='ev_cmp_custom_car_v1';
+  function saveCustomCar(obj){ try{ localStorage.setItem(CUSTOM_KEY, JSON.stringify(obj||null)); }catch(e){} }
+  function loadCustomCar(){ try{ const v=localStorage.getItem(CUSTOM_KEY); return v? JSON.parse(v) : null; }catch(e){ return null; } }
+  function removeCustomCar(){ try{ localStorage.removeItem(CUSTOM_KEY); }catch(e){} }
+  async function fetchJSON(url){ try{ const r = await fetch(url, {headers:{'Accept':'application/json'}}); if(!r.ok) return null; return await r.json(); }catch(e){ return null; } }
+  async function wikiSearchOnce(lang, query){ const qy = encodeURIComponent(query.trim()); const url = `https://${lang}.wikipedia.org/w/rest.php/v1/search/title?q=${qy}&limit=1`; const js = await fetchJSON(url); if(js && js.pages && js.pages.length){ return {lang, key: js.pages[0].key}; } return null; }
+  async function wikiSummary(lang, key){ const url = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(key)}`; return await fetchJSON(url); }
+  
+function parseNumbersFromText(text) {
+  const out = { cap: null, wltp: null, cons: null };
+  if (!text) return out;
+  const t = text.replace(/\n/g, ' ');
+  const kwh = t.match(/(\d{2,3})\s*kWh/i);
+  if (kwh) out.cap = parseFloat(kwh[1]);
+  const km = t.match(/(\d{3,4})\s*km/i);
+  if (km) out.wltp = parseFloat(km[1]);
+  const cons = t.match(/(\d+(?:\.\d+)?)\s*kWh\/100\s*km/i);
+  if (cons) out.cons = parseFloat(cons[1]) / 100;
+  return out;
+}
+
+function buildEvDbSearchUrl(marca, modelo){
+  const q = encodeURIComponent(`site:ev-database.org ${marca} ${modelo}`);
+  return `https://www.google.com/search?q=${q}`;
+}
+
+async function autoAddCar() {
+  if (DATA.length >= 4) { toast('Limite atingido (4 carros). Remove um para adicionar outro.'); return; }
+  const marca  = (q('autoMarca').value  || '').trim();
+  const modelo = (q('autoModelo').value || '').trim();
+  const preco  = +q('autoPreco').value || 0;
+  if (!marca || !modelo) { toast('Indica Marca e Modelo'); return; }
+  const query = `${marca} ${modelo}`;
+  let found = await wikiSearchOnce('pt', query);
+  if (!found) found = await wikiSearchOnce('en', query);
+  if (!found) {
+    const url = buildEvDbSearchUrl(marca, modelo);
+    if (confirm('Não encontrei o modelo na Wikipedia. Queres abrir a EV‑Database para ver detalhes?')) window.open(url, '_blank', 'noopener');
+    // Mesmo sem página, adiciona um carro ESTIMADO para poderes editar na aba Características
+    const obj = {
+      marca, modelo, precoSite: preco,
+      wlpt_km: 400, cap: 60, cons: 0.15,
+      img: '',
+      extras: '⚠️ Dados estimados (WLTP/Consumo/Cap.). Edita em Características.',
+      __custom: true,
+      __estimated: true
+    };
+    upsertCustomIntoDATA(obj);
+    saveCustomCar(obj);
+    rebuildAll();
+    try { const sel = q('costModel'); if (sel) sel.value = `${marca}
+${modelo}`; } catch {}
+    toast('Carro adicionado (estimado)');
+    return;
+  }
+  const sum     = await wikiSummary(found.lang, found.key);
+  const extraWD = await enrichFromWikidata(found);
+  const nums = parseNumbersFromText((sum && (sum.extract || sum.description)) || '');
+  const hasNumsFromSource = !!(extraWD.capFromWD || nums.cap || nums.wltp || nums.cons);
+  const imgFromSummary = (sum && (sum.originalimage?.source || sum.thumbnail?.source)) || '';
+  const img  = (extraWD.imgFromWD || imgFromSummary);
+  const wlpt = nums.wltp || 400;
+  const cap  = (extraWD.capFromWD ?? nums.cap ?? 60);
+  let cons   = nums.cons || 0;
+  if (!cons && cap > 0 && wlpt > 0) cons = +(cap / wlpt).toFixed(3);
+  if (!cons) cons = 0.15;
+  const estimated = !hasNumsFromSource;
+  const obj = {
+    marca, modelo, precoSite: preco,
+    wlpt_km: wlpt, cap, cons,
+    img,
+    extras: estimated ? '⚠️ Dados estimados (WLTP/Consumo/Cap.). Edita em Características.' : ((sum?.extract) || '—'),
+    __custom: true,
+    __estimated: estimated
+  };
+  upsertCustomIntoDATA(obj);
+  saveCustomCar(obj);
+  if (hasNumsFromSource) {
+    alert('Dados obtidos automaticamente (Wikidata/Wikipedia). Verifica e clica OK.');
+  } else {
+    const url = buildEvDbSearchUrl(marca, modelo);
+    if (confirm('Apenas imagem ou dados insuficientes obtidos automaticamente. Queres abrir a EV‑Database para ver detalhes do modelo?')) window.open(url, '_blank', 'noopener');
+  }
+  rebuildAll();
+  try { const sel = q('costModel'); if (sel) sel.value = `${marca}\n${modelo}`; } catch {}
+  toast('Carro adicionado');
+}
+
+function rebuildAll() {
+  buildCarac();
+  buildCostModelList();
+  compute();
+  computeCosts();
+  savePrefs();
+}
+function autoClearCar(){ const idx=DATA.findIndex(d=>d.__custom===true); if(idx>=0){ DATA.splice(idx,1); toast('4.º carro removido'); } removeCustomCar(); rebuildAll(); }
+  (function(){ const c=loadCustomCar(); if(c&&c.marca&&c.modelo){ upsertCustomIntoDATA(c); } })();
+  document.addEventListener('click',(ev)=>{ if(ev.target&&ev.target.id==='btnAutoCar'){ autoAddCar(); } if(ev.target&&ev.target.id==='btnAutoClear'){ autoClearCar(); }});
+
   // Compute principal (Simulação)
   function getImg(d){ return (d.img && d.img.trim()) ? d.img.trim() : '' }
   function compute(){
     const anos= +q('anos').value||10; const kmAno= +q('kmAno').value||10000; const residual=(+q('residual').value||30)/100; const fixosAno= +q('fixosAno').value||450; const reserva=(+q('reserva').value||10)/100; const retoma= +q('retoma').value||0;
     const euro_use=euroMix(); const euro_casa=+q('casa_preco').value||0.16; const euro_fora=+q('fora_preco').value||0.40; const penAE=0.20, penInv=0.15; const vDC= +q('fora_kW').value || 120;
     const rows=[];
-    DATA.forEach(d=>{ const preco=d.precoSite; const precoApos=Math.max(0,preco-retoma); const eur_km_energia = d.cons*euro_use; const eur_km_capex=(anos>0&&kmAno>0)?((precoApos*(1-residual))/(anos*kmAno)):0; const tco_km=eur_km_capex+eur_km_energia+((kmAno>0)?(fixosAno/kmAno):0); const tco_mes=tco_km*(kmAno/12); const aut_verao=d.wlpt_km*(1-reserva)*(1-penAE); const aut_inv=aut_verao*(1-penInv); const t1080=(0.70*d.cap)/(vDC>0?vDC:120)*60; const e100_casa=100*d.cons*euro_casa; const e100_fora=100*d.cons*euro_fora; rows.push({key:d.marca+' '+d.modelo, marca:d.marca, modelo:d.modelo, img:getImg(d), preco, precoApos, cap:d.cap, cons:d.cons, eur100:100*eur_km_energia, eurCapex:eur_km_capex, tco_km, tco_mes, aut_verao, aut_inv, t1080, mala:d.mala, e100_casa, e100_fora}); });
+ if(!DATA||DATA.length===0){ const cardsTop=q('cardsTop'); if(cardsTop) cardsTop.innerHTML=''; const k=q('kpis'); if(k) k.innerHTML=''; const tb=document.getElementById('tbl')?.querySelector('tbody'); if(tb) tb.innerHTML=''; const cards=q('cardsEF'); if(cards) cards.innerHTML=''; q('upd').textContent=''; return; }
+    DATA.forEach((d,di)=>{ const preco=d.precoSite; const precoApos=Math.max(0,preco-retoma); const eur_km_energia = d.cons*euro_use; const eur_km_capex=(anos>0&&kmAno>0)?((precoApos*(1-residual))/(anos*kmAno)):0; const tco_km=eur_km_capex+eur_km_energia+((kmAno>0)?(fixosAno/kmAno):0); const tco_mes=tco_km*(kmAno/12); const aut_verao=d.wlpt_km*(1-reserva)*(1-penAE); const aut_inv=aut_verao*(1-penInv); const t1080=(0.70*d.cap)/(vDC>0?vDC:120)*60; const e100_casa=100*d.cons*euro_casa; const e100_fora=100*d.cons*euro_fora; rows.push({idx:di, key:d.marca+' '+d.modelo, marca:d.marca, modelo:d.modelo, img:getImg(d), preco, precoApos, cap:d.cap, cons:d.cons, eur100:100*eur_km_energia, eurCapex:eur_km_capex, tco_km, tco_mes, aut_verao, aut_inv, t1080, mala:d.mala, e100_casa, e100_fora}); });
     // scoring
     const mm=(key)=>{const arr=rows.map(r=>r[key]); return {min:Math.min(...arr), max:Math.max(...arr)}}; const mtco=mm('tco_km'), maut=mm('aut_inv'), mma=mm('mala');
     let wC=+q('w_custo').value||0, wA=+q('w_auto').value||0, wS=+q('w_space').value||0; const wSum=(wC+wA+wS)>0?(wC+wA+wS):1; wC/=wSum; wA/=wSum; wS/=wSum;
     rows.forEach(r=>{ const norm=(v,m)=> (m.max>m.min)?((v-m.min)/(m.max-m.min)) : 1; const s_cost=1-norm(r.tco_km, mtco); const s_auto=norm(r.aut_inv, maut); const s_space=norm(r.mala, mma); r.score=Math.round(100*(wC*s_cost+wA*s_auto+wS*s_space)); });
     const orderBy=q('orderBy').value; rows.sort((a,b)=> (orderBy==='score') ? (b.score-a.score) : (a.tco_km-b.tco_km));
 
-    // Cartões topo
+    // Cards topo
     const cardsTop=q('cardsTop'); cardsTop.innerHTML=''; const bestTCO=[...rows].sort((a,b)=>a.tco_km-b.tco_km)[0]; const bestSc=[...rows].sort((a,b)=>b.score-a.score)[0];
     rows.forEach(r=>{ const div=document.createElement('div'); div.className='carCard'; div.innerHTML = `
-        <img loading=\"lazy\" src=\"${r.img}\" alt=\"${r.marca} ${r.modelo}\">\n        <div class=\"carCardBody\">\n          <div class=\"cardPrice\"><div class=\"small\">€ inicial (após retoma)</div><div><b>${fmt(r.precoApos,2)} €</b></div></div>\n          <div class=\"row\" style=\"justify-content:space-between\"><div><b>${r.marca} ${r.modelo}</b></div><div class=\"badgeMix\"><span class=\"badgeCasa\">Casa ${fmt(+q('mixCasa').value,0)}%</span><span class=\"badgeFora\">Fora ${fmt(+q('mixFora').value,0)}%</span></div></div>\n          <div class=\"row\" style=\"justify-content:space-between;margin-top:6px\"><div class=\"small\">TCO</div><div><b>${fmt(r.tco_km,3)} €/km</b></div></div>\n          <div class=\"row\" style=\"justify-content:space-between\"><div class=\"small\">Energia (mix)</div><div><b>${fmt(r.eur100,2)} €/100 km</b></div></div>\n        </div>`; 
+ <div class=\"carImg\" role=\"img\" aria-label=\"${r.marca} ${r.modelo}\" style=\"background-image:url('${r.img}')\"></div>
+ <div class=\"carCardBody\">\n          <div class=\"cardPrice\"><div class=\"small\">€ inicial (após retoma)</div><div><b>${fmt(r.precoApos,2)} €</b></div></div>\n          <div class=\"row\" style=\"justify-content:space-between\"><div><b>${r.marca} ${r.modelo}</b></div><div class=\"badgeMix\"><span class=\"badgeCasa\">Casa ${fmt(+q('mixCasa').value,0)}%</span><span class=\"badgeFora\">Fora ${fmt(+q('mixFora').value,0)}%</span></div></div>\n          <div class=\"row\" style=\"justify-content:space-between;margin-top:6px\"><div class=\"small\">TCO</div><div><b>${fmt(r.tco_km,3)} €/km</b></div></div>\n          <div class=\"row\" style=\"justify-content:space-between\"><div class=\"small\">Energia (mix)</div><div><b>${fmt(r.eur100,2)} €/100 km</b></div></div>\n        </div>`; 
         div.addEventListener('click',()=>{ const sel=q('costModel'); if(sel){ sel.value=r.marca+'|'+r.modelo; document.querySelector('.tab-btn[data-tab=\"cust\"]').click(); }}); 
-        cardsTop.appendChild(div); 
+        const rm=document.createElement('button'); rm.className='rmCard'; rm.type='button'; rm.title='Remover'; rm.setAttribute('aria-label','Remover'); rm.setAttribute('data-rm', r.idx); rm.innerHTML='<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12Zm13-15h-3.5l-.71-.71A1 1 0 0 0 14.09 3H9.91a1 1 0 0 0-.79.29L8.5 4H5v2h14V4Z"/></svg>'; div.appendChild(rm); rm.addEventListener('click', ev=>{ ev.stopPropagation(); ev.preventDefault(); const idx=+rm.getAttribute('data-rm'); if(Number.isInteger(idx)&&idx>=0&&idx<DATA.length){ DATA.splice(idx,1); buildCarac(); buildCostModelList(); compute(); computeCosts(); savePrefs(); toast('Carro removido'); } }); cardsTop.appendChild(div); 
     });
 
     // Tabela
@@ -371,13 +512,13 @@ tr.rec-row{outline:2px dashed #2563eb;outline-offset:-2px}
   function td(v,cls){ const x=document.createElement('td'); x.textContent=v; if(cls) x.className=cls; return x }
 
   function computeCosts(){
+ if(!DATA||DATA.length===0){ try{ const tbody=q('tblCust').querySelector('tbody'); const tfoot=q('tblCust').querySelector('tfoot'); if(tbody) tbody.innerHTML=''; if(tfoot) tfoot.innerHTML=''; const k=q('custKPI'); if(k) k.innerHTML=''; const sel=q('costModel'); if(sel) sel.innerHTML=''; q('custAssum').textContent=''; q('fairWarn').style.display='none'; const svg=q('chartBars'); while(svg&&svg.firstChild) svg.removeChild(svg.firstChild); }catch(e){} return; }
     const anos= +q('anos').value||10; let kmAno= +q('kmAno').value||10000; const residual=(+q('residual').value||30)/100; let fixosAno= +q('fixosAno').value||450; const retoma= +q('retoma').value||0;
     const scenE=(+q('scenE').value||0)/100; const scenKm=(+q('scenKm').value||0)/100; const scenMan=(+q('scenMan').value||0)/100;
-
     const iceL= +q('ice_l100').value||0; const iceE= +q('ice_eur_l').value||0; const iceMan= +q('ice_maint').value||0; const iceCapex= +q('ice_capex').value||0; const iceResid=(+q('ice_resid').value||0)/100;
 
     const key=q('costModel').value || (DATA[0].marca+'|'+DATA[0].modelo); const d=DATA.find(x=> (x.marca+'|'+x.modelo)===key) || DATA[0];
-    const preco=d.precoSite; const precoApos=Math.max(0,preco-retoma); const residVal=precoApos*((+q('residual').value||30)/100); const depTotal=precoApos-residVal; const depAno = ((+q('anos').value||10) > 0) ? (depTotal/(+q('anos').value||10)) : 0;
+    const preco=d.precoSite; const precoApos=Math.max(0,preco-retoma); const residVal=precoApos*residual; const depTotal=precoApos-residVal; const depAno = ((+q('anos').value||10) > 0) ? (depTotal/(+q('anos').value||10)) : 0;
 
     q('custAssum').textContent = `Assunções: ${d.marca} ${d.modelo} · Preço após retoma: ${fmt(precoApos,2)} € · Mix base Casa/Fora (ano 1): ${fmt(+q('mixCasa').value,0)}% / ${fmt(+q('mixFora').value,0)}% · Δ Mix Fora/ano: ${fmt(+q('scenMixFora').value,0)} p.p. · Cresc. energia: ${fmt(+q('scenE').value,1)}%/ano · Cresc. km: ${fmt(+q('scenKm').value,1)}%/ano · Cresc. manutenção: ${fmt(+q('scenMan').value,1)}%/ano`;
 
@@ -387,15 +528,20 @@ tr.rec-row{outline:2px dashed #2563eb;outline-offset:-2px}
     const tbody=q('tblCust').querySelector('tbody'); const tfoot=q('tblCust').querySelector('tfoot'); tbody.innerHTML=''; tfoot.innerHTML='';
     let acumul=0; let acumulComCapex=precoApos; let totEner=0, totMan=0, totDep=0, totAnual=0; const arrEner=[], arrMan=[], arrDep=[], arrYears=[], arrCum=[], arrICEcum=[];
 
-    const iceDepTotal = iceCapex * (1 - iceResid); const iceDepAno = ((+q('anos').value||10)>0)? (iceDepTotal/(+q('anos').value||10)) : 0; let iceCum = iceCapex;
+    // ICE depreciation
+    const iceDepTotal = iceCapex * (1 - iceResid); const iceDepAno = (anos>0)? (iceDepTotal/anos) : 0; let iceCum = iceCapex; // ICE inclui capex inicial
 
     for(let a=1;a<=anos;a++){
       const kmA = Math.round(kmAno * Math.pow(1+scenKm, a-1));
       const manA = fixosAno * Math.pow(1+scenMan, a-1);
       const euro_mix_year = euroMixYear(a-1);
-      const e_km_year = d.cons * euro_mix_year; const energia = e_km_year * kmA; const kwh_ano = d.cons * kmA; const deprec = depAno; const total = energia + manA + deprec; acumul += total; acumulComCapex += total; totEner+=energia; totMan+=manA; totDep+=deprec; totAnual+=total;
-      const iceRun = (iceL/100)*kmA*iceE + iceMan + iceDepAno; iceCum += iceRun;
+      const e_km_year = d.cons * euro_mix_year; // EV
+      const energia = e_km_year * kmA; const kwh_ano = d.cons * kmA; const deprec = depAno; const total = energia + manA + deprec; acumul += total; acumulComCapex += total; totEner+=energia; totMan+=manA; totDep+=deprec; totAnual+=total;
+
+      const iceRun = (iceL/100)*kmA*iceE + iceMan + iceDepAno; iceCum += iceRun; // ICE: combustível + manutenção + depreciação
+
       arrEner.push(energia); arrMan.push(manA); arrDep.push(deprec); arrYears.push(a); arrCum.push(acumulComCapex); arrICEcum.push(iceCum);
+
       const tr=document.createElement('tr'); tr.appendChild(td(a,'l')); tr.appendChild(td(fmt(kmA,0))); tr.appendChild(td(fmt(kwh_ano,0))); tr.appendChild(td(fmt(energia,2))); tr.appendChild(td(fmt(manA,2))); tr.appendChild(td(fmt(deprec,2))); tr.appendChild(td(fmt(total,2))); tr.appendChild(td(fmt(acumul,2))); tr.appendChild(td(fmt(acumulComCapex,2))); tbody.appendChild(tr);
     }
 
@@ -454,7 +600,7 @@ tr.rec-row{outline:2px dashed #2563eb;outline-offset:-2px}
   }
 
   // Build Characteristics
-  function buildCarac(){ const tb=q('caracBody'); if(!tb) return; tb.innerHTML=''; DATA.forEach((d,i)=>{ const tr=document.createElement('tr'); const td=(html,cls)=>{const x=document.createElement('td'); if(cls) x.className=cls; x.innerHTML=html; return x}; const cell=(val,id)=>`<input id='${id}' type='text' value='${val||''}' style='width:100%;padding:6px 8px;border-radius:8px;border:1px solid #d6dbe6;background:#fbfcff'>`; tr.appendChild(td(`<b>${d.marca} ${d.modelo}</b>`,'l')); tr.appendChild(td(cell(d.wlpt_km,`c_wltp_${i}`))); tr.appendChild(td(cell(d.cap,`c_cap_${i}`))); tr.appendChild(td(cell(d.cons,`c_cons_${i}`))); tr.appendChild(td(cell(d.mala,`c_mala_${i}`))); tr.appendChild(td(cell(d.pdc,`c_pdc_${i}`))); tr.appendChild(td(cell(d.tracao,`c_trac_${i}`))); tr.appendChild(td(cell(d.cv,`c_cv_${i}`))); tr.appendChild(td(cell(d.nm,`c_nm_${i}`))); tr.appendChild(td(cell(d.zero100,`c_z_${i}`))); tr.appendChild(td(cell(d.dims,`c_dims_${i}`))); tr.appendChild(td(cell(d.img,`c_img_${i}`))); tr.appendChild(td(cell(d.extras,`c_ex_${i}`))); tb.appendChild(tr); }); }
+  function buildCarac(){ const tb=q('caracBody'); if(!tb) return; tb.innerHTML=''; DATA.forEach((d,i)=>{ const tr=document.createElement('tr'); const td=(html,cls)=>{const x=document.createElement('td'); if(cls) x.className=cls; x.innerHTML=html; return x}; const cell=(val,id)=>`<input id='${id}' type='text' value='${val||''}' style='width:100%;padding:6px 8px;border-radius:8px;border:1px solid #d6dbe6;background:#fbfcff'>`; tr.appendChild(td(`<b>${d.marca} ${d.modelo}</b>`,'l')); tr.appendChild(td(cell(d.wlpt_km,`c_wltp_${i}`))); tr.appendChild(td(cell(d.cap,`c_cap_${i}`))); tr.appendChild(td(cell(d.cons,`c_cons_${i}`))); tr.appendChild(td(cell(d.mala,`c_mala_${i}`))); tr.appendChild(td(cell(d.pdc,`c_pdc_${i}`))); tr.appendChild(td(cell(d.tracao,`c_trac_${i}`))); tr.appendChild(td(cell(d.cv,`c_cv_${i}`))); tr.appendChild(td(cell(d.nm,`c_nm_${i}`))); tr.appendChild(td(cell(d.zero100,`c_z_${i}`))); tr.appendChild(td(cell(d.dims,`c_dims_${i}`))); tr.appendChild(td(cell(d.img,`c_img_${i}`))); tr.appendChild(td(cell(d.extras,`c_ex_${i}`))); const rmBtn = `<button class='btn ghost' type='button' data-rm='${i}' style='padding:6px 8px;border-color:#e11d48;color:#e11d48'>Remover</button>`; tr.appendChild(td(rmBtn)); tb.appendChild(tr); }); }
 
   // Build cost model list
   function buildCostModelList(){ const sel=q('costModel'); sel.innerHTML=''; DATA.forEach(d=>{ const o=document.createElement('option'); o.value=d.marca+'|'+d.modelo; o.textContent=d.marca+' '+d.modelo; sel.appendChild(o); }); }
@@ -468,7 +614,80 @@ tr.rec-row{outline:2px dashed #2563eb;outline-offset:-2px}
   q('btnScnSave')?.addEventListener('click',saveScn); q('btnScnLoad')?.addEventListener('click',loadScn); q('btnScnDel')?.addEventListener('click',delScn);
 
   // Boot
-  buildCarac(); buildCostModelList(); refreshScn(); loadPrefs(); compute(); computeCosts();
+  buildCarac(); buildCostModelList(); refreshScn(); loadPrefs(); compute(); computeCosts(); wireCSV();
+
+
+// === PATCH MOVED INSIDE IIFE ===
+// === PATCH: ligar "Características" aos cálculos ===
+const CARAC_MAP={ wltp:'wlpt_km', cap:'cap', cons:'cons', mala:'mala', pdc:'pdc', trac:'tracao', cv:'cv', nm:'nm', z:'zero100', dims:'dims', img:'img', ex:'extras' };
+const CARAC_NUM=new Set(['wlpt_km','cap','cons','mala','pdc']);
+const caracTblBody=document.getElementById('caracBody');
+if(caracTblBody){
+  caracTblBody.addEventListener('input',ev=>{ const el=ev.target; if(!el.id||!el.id.startsWith('c_')) return; const m=el.id.match(/^c_(\w+)_(\d+)$/); if(!m) return; const[,field,idxStr]=m; const idx=+idxStr; const prop=CARAC_MAP[field]; if(!prop||!DATA[idx]) return; let val=el.value; if(CARAC_NUM.has(prop)) val=toNumber(val); DATA[idx][prop]=val; compute(); computeCosts(); savePrefs(); });
+  caracTblBody.addEventListener('click',ev=>{ const t=ev.target; const btn=(t.closest?t.closest('[data-rm]'):null)||(t.getAttribute&&t.getAttribute('data-rm')!==null?t:null); if(btn){ ev.stopPropagation(); ev.preventDefault(); const idx=+btn.getAttribute('data-rm'); if(Number.isInteger(idx)&&idx>=0&&idx<DATA.length){ DATA.splice(idx,1); buildCarac(); buildCostModelList(); compute(); computeCosts(); savePrefs(); toast('Carro removido'); } } });
+}
+
+
+// === CSV export/import de carros ===
+function carsToCSV(){
+  const cols=['marca','modelo','precoSite','wlpt_km','cap','cons','mala','pdc','tracao','cv','nm','zero100','dims','img','extras'];
+  const esc=(v)=>{ const s=(v==null?'':String(v)); const needQuote = s.indexOf(',')>-1 || s.indexOf('"')>-1 || s.indexOf(String.fromCharCode(10))>-1; return needQuote ? '"' + s.split('"').join('""') + '"' : s; };
+  const lines=[cols.join(',')];
+  DATA.forEach(d=> lines.push(cols.map(c=> esc(d[c])).join(',')) );
+  return lines.join(String.fromCharCode(10));
+}
+function downloadCSV(name,csv){ const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(url),500); }
+function parseCSV(str){
+  const rows=[], cols=[], len=str.length; let i=0, cur='', inQ=false; const push=()=>{ cols.push(cur); cur=''; }; const newRow=()=>{ if(cols.length||cur){ rows.push(cols.slice()); cols.length=0; } };
+  while(i<len){ const ch=str[i++]; if(inQ){ if(ch==='"'){ if(str[i]==='"'){ cur+='"'; i++; } else { inQ=false; } } else { cur+=ch; } }
+  else { if(ch==='"'){ inQ=true; } else if(ch===','){ push(); } else if(ch.charCodeAt(0)===10){ push(); newRow(); } else if(ch.charCodeAt(0)===13){ } else { cur+=ch; } } }
+  push(); newRow(); const header=(rows.shift()||[]).map(h=>h.trim());
+  return rows.filter(r=>r.length && r.some(x=>x && x.trim())).map(r=>{ const o={}; header.forEach((h,idx)=> o[h]=r[idx]); return o; });
+}
+function importCarsFromCSVObjects(arr, replace=true){
+  const mapped = arr.map(o=>({ marca:o.marca||'', modelo:o.modelo||'', precoSite:toNumber(o.precoSite), wlpt_km:toNumber(o.wlpt_km), cap:toNumber(o.cap), cons:toNumber(o.cons), mala:toNumber(o.mala), pdc:toNumber(o.pdc), tracao:o.tracao||'—', cv:o.cv||'—', nm:o.nm||'—', zero100:o.zero100||'—', dims:o.dims||'—', img:o.img||'', extras:o.extras||'—', __custom:true }));
+  const slice = mapped.slice(0,4);
+  if(replace){ DATA.length=0; slice.forEach(x=> DATA.push(x)); } else { slice.forEach(x=>{ if(DATA.length<4) DATA.push(x); }); }
+  rebuildAll(); toast('Importado '+slice.length+' carro(s)');
+}
+function wireCSV(){ try{ const ex=document.getElementById('btnCarsExport'); const im=document.getElementById('btnCarsImport'); const fi=document.getElementById('carsCSVfile'); if(ex){ ex.addEventListener('click', ()=> downloadCSV('carros.csv', carsToCSV()) ); } if(im && fi){ im.addEventListener('click', ()=> fi.click()); fi.addEventListener('change', ()=>{ const f=fi.files&&fi.files[0]; if(!f) return; const rd=new FileReader(); rd.onload=()=>{ try{ const arr=parseCSV(rd.result); importCarsFromCSVObjects(arr,true); fi.value=''; }catch(e){ toast('CSV inválido'); } }; rd.readAsText(f); }); } }catch(e){} }
+
+
+async function enrichFromWikidata(found){
+  try{
+    const lang=found.lang||'en';
+    const page=found.key;
+    const pp = await fetch(`https://${lang}.wikipedia.org/w/api.php?action=query&prop=pageprops&format=json&titles=${encodeURIComponent(page)}&origin=*`).then(r=>r.json());
+    const pages=pp?.query?.pages||{}; const first=pages[Object.keys(pages)[0]]; const qid=first?.pageprops?.wikibase_item; if(!qid) return {};
+    const wd = await fetch(`https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${qid}&props=claims&format=json&origin=*`).then(r=>r.json());
+    const ent=wd?.entities?.[qid]; if(!ent) return {}; const claims=ent.claims||{};
+    let cap=null; const capC=(claims.P4140||[])[0]; const capVal=capC?.mainsnak?.datavalue?.value; if(capVal && typeof capVal.amount==='string'){ cap=Math.abs(parseFloat(capVal.amount)); }
+    let imgUrl=''; const img=(claims.P18||[])[0]?.mainsnak?.datavalue?.value; if(img){ imgUrl=`https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(img)}`; }
+    return {capFromWD:cap, imgFromWD:imgUrl};
+  }catch(e){ return {}; }
+}
+// Unicidade para customs (evita substituir)
+function uniqueMarcaModelo(marca, modelo){ let base=modelo||''; let name=base; let n=2; while(DATA.some(d=>d.marca===marca && d.modelo===name)){ name=base+' ('+n+')'; n++; } return name; }
+// upsert: append para customs; upsert apenas para não-custom
+function upsertCustomIntoDATA(obj){
+  const add=Object.assign({precoSite:obj.precoSite||0, wlpt_km:obj.wlpt_km||400, cap:obj.cap||60, cons:obj.cons||0.15, mala:obj.mala||0, pdc:obj.pdc||100, frunk:0, tracao:obj.tracao||'—', cv:obj.cv||'—', nm:obj.nm||'—', zero100:obj.zero100||'—', dims:obj.dims||'—', img:obj.img||'', extras:obj.extras||'—'}, {marca:obj.marca, modelo:obj.modelo});
+  if(obj.__custom){ add.__custom=true; add.modelo=uniqueMarcaModelo(add.marca, add.modelo); DATA.push(add); return; }
+  const i=DATA.findIndex(d=>d.marca===add.marca && d.modelo===add.modelo); if(i>=0) DATA[i]=add; else DATA.push(add);
+}
+
+
+
+// Expose internals on window (defensive)
+try {
+  window.DATA = DATA;
+  window.compute = compute;
+  window.computeCosts = computeCosts;
+  window.savePrefs = savePrefs;
+  window.buildCarac = buildCarac;
+  window.buildCostModelList = buildCostModelList;
+  window.toast = toast;
+  window.toNumber = toNumber;
+} catch(e){}
 })();
 </script>
 </body>
