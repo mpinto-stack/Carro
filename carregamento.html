@@ -1,0 +1,491 @@
+
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Simulador de Carregamento EV — v0.4 (curvas por modelo, light/dark, barra fixa)</title>
+<style>
+:root{
+  --bg:#f8fafc; --card:#ffffff; --muted:#475569; --text:#0f172a; --border:rgba(15,23,42,.08);
+  --accent:#16a34a; --accent2:#2563eb; --chip:#0ea5e9; --kpi:#0ea5e9;
+}
+[data-theme="dark"]{
+  --bg:#0b1220; --card:#0f172a; --muted:#94a3b8; --text:#e5e7eb; --border:rgba(148,163,184,.2);
+  --accent:#22c55e; --accent2:#60a5fa; --chip:#60a5fa; --kpi:#22c55e;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans',sans-serif;background:var(--bg);color:var(--text)}
+.container{max-width:1260px;margin:72px auto 24px;padding:0 16px}
+header.app{position:fixed;top:0;left:0;right:0;z-index:1000;backdrop-filter:saturate(1.2) blur(8px);background-color:color-mix(in oklab, var(--bg) 75%, transparent);border-bottom:1px solid var(--border)}
+header .inner{max-width:1260px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px}
+.brand{display:flex;align-items:center;gap:10px}
+.badge{background:color-mix(in oklab, var(--card) 60%, transparent);border:1px solid var(--border);color:var(--muted);padding:3px 8px;border-radius:999px;font-size:12px}
+.theme-toggle{margin-left:auto;display:flex;align-items:center;gap:8px}
+.switch{position:relative;display:inline-block;width:46px;height:24px}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;inset:0;background:#cbd5e1;border-radius:999px;transition:.2s}
+.slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;top:3px;background:white;border-radius:50%;transition:.2s}
+input:checked + .slider{background:#2563eb}
+input:checked + .slider:before{transform:translateX(22px)}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px}
+.grid{display:grid;grid-template-columns:1.25fr 1fr;gap:16px}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+input,select,textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:color-mix(in oklab, var(--bg) 80%, white 20%);color:var(--text)}
+textarea{min-height:90px}
+.field{margin-bottom:10px}
+.row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.small{font-size:12px;color:var(--muted)}
+.buttons{display:flex;flex-wrap:wrap;gap:8px}
+button{background:linear-gradient(180deg, color-mix(in oklab, var(--accent) 85%, #22c55e 15%), color-mix(in oklab, var(--accent) 65%, #15803d 35%));color:white;border:none;padding:10px 14px;border-radius:10px;cursor:pointer}
+button.secondary{background:linear-gradient(180deg, color-mix(in oklab, var(--accent2) 90%, #3b82f6 10%), #1e40af)}
+button.ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+hr{border:none;border-top:1px dashed var(--border);margin:12px 0}
+legend{font-weight:600;color:color-mix(in oklab, var(--text) 80%, var(--muted) 20%)}
+.summary{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.kpi{background:color-mix(in oklab, var(--bg) 70%, white 30%);border:1px solid var(--border);border-radius:10px;padding:10px}
+.kpi h3{margin:0;font-size:13px;color:color-mix(in oklab, var(--text) 80%, var(--muted) 20%)}
+.kpi .v{font-size:20px;font-weight:700;color:var(--text)}
+.kpi .u{font-size:12px;color:var(--muted)}
+.topbar{position:sticky;top:58px;z-index:999}
+.topbar .summary{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px}
+canvas{background:color-mix(in oklab, var(--bg) 80%, white 20%);border:1px solid var(--border);border-radius:12px}
+.note{background:color-mix(in oklab, var(--bg) 70%, white 30%);border:1px solid var(--border);border-radius:8px;padding:10px}
+.hide{display:none}
+.code{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:12px; color:var(--text)}
+</style>
+</head>
+<body>
+<header class="app">
+  <div class="inner">
+    <div class="brand">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm1 14h-2v-2h2Zm0-4h-2V6h2Z" fill="currentColor"/></svg>
+      <strong>Simulador EV v0.4</strong>
+      <span class="badge">curvas por modelo • template download • light/dark</span>
+    </div>
+    <div class="theme-toggle small">
+      <span>Claro</span>
+      <label class="switch">
+        <input id="theme_switch" type="checkbox"/>
+        <span class="slider"></span>
+      </label>
+      <span>Escuro</span>
+    </div>
+  </div>
+</header>
+<div class="container">
+  <div class="topbar">
+    <div class="summary">
+      <div class="kpi"><h3>Tomada (~3,7 kW)</h3><div class="v" id="t_37">–</div><div class="u">hh:mm</div></div>
+      <div class="kpi"><h3>Wallbox 7,4 kW</h3><div class="v" id="t_74">–</div><div class="u">hh:mm</div></div>
+      <div class="kpi"><h3>Wallbox 22 kW</h3><div class="v" id="t_22">–</div><div class="u">hh:mm</div></div>
+      <div class="kpi"><h3>DC público</h3><div class="v" id="t_dc">–</div><div class="u">hh:mm</div></div>
+      <div class="kpi"><h3>Energia adicionada</h3><div class="v" id="e_added">–</div><div class="u">kWh (úteis)</div></div>
+    </div>
+  </div>
+
+  <div class="grid" style="margin-top:12px">
+    <section class="card">
+      <fieldset style="border:0;padding:0;margin:0">
+        <legend>1) Dados do veículo</legend>
+        <div class="row">
+          <div class="field">
+            <label>Marca</label>
+            <select id="marca"></select>
+            <div id="marca_custom_wrap" class="field hide"><label>Marca (outro)</label><input id="marca_custom" placeholder="ex.: Outro Fabricante"/></div>
+          </div>
+          <div class="field">
+            <label>Modelo</label>
+            <select id="modelo"></select>
+            <div id="modelo_custom_wrap" class="field hide"><label>Modelo (outro)</label><input id="modelo_custom" placeholder="ex.: Meu EV"/></div>
+          </div>
+          <div class="field" style="align-self:end">
+            <div class="buttons">
+              <button class="ghost" id="btnCarregarModel">Auto-preencher</button>
+              <button class="ghost" id="btnAplicarCurva">Aplicar curva do modelo</button>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field"><label>Capacidade utilizável da bateria (kWh)</label><input id="batt_kwh" type="number" step="0.1"/></div>
+          <div class="field"><label>Limite AC do carro (kW)</label><input id="ac_limit" type="number" step="0.1"/></div>
+          <div class="field"><label>Pico DC do carro (kW)</label><input id="dc_peak" type="number" step="0.1"/></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>Química</label>
+            <select id="chem"><option value="NMC">NMC / NCA</option><option value="LFP">LFP</option></select>
+          </div>
+          <div class="field"><label>Fases do OBC</label>
+            <select id="phases"><option value="1">Monofásico (1P)</option><option value="3">Trifásico (3P)</option></select>
+          </div>
+          <div class="field"><label>Tensão do pack (info)</label>
+            <select id="arch"><option value="400">~400 V</option><option value="800">~800 V</option></select>
+          </div>
+        </div>
+        <hr/>
+        <legend>2) Sessão & potência contratada</legend>
+        <div class="row">
+          <div class="field"><label>SoC inicial (%)</label><input id="soc_start" type="number" value="20" min="0" max="99"/></div>
+          <div class="field"><label>SoC alvo (%)</label><input id="soc_target" type="number" value="80" min="1" max="100"/></div>
+          <div class="field"><label>DC público — potência disponível (kW)</label><input id="dc_site" type="number" value="150" step="1"/></div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label>Potência contratada (residencial, kVA≈kW)</label>
+            <select id="contract"><option>3.45</option><option>4.60</option><option>5.75</option><option selected>6.90</option><option>10.35</option><option>13.80</option><option>17.25</option><option>20.70</option></select>
+            <div class="small">Escalões BTN típicos em Portugal.</div>
+          </div>
+          <div class="field">
+            <label>Tipo de HPC (limite de corrente)</label>
+            <select id="hpc"><option value="150x350">150 kW @ 350 A</option><option value="200x500">200 kW @ 500 A</option><option value="350x500" selected>350 kW @ 500 A</option></select>
+            <div class="small">HPCs limitam corrente (≈350–500 A). Potência ≈ Vpack × I.</div>
+          </div>
+          <div class="field">
+            <label>Eficiência AC / DC (%)</label>
+            <div class="buttons" style="gap:6px">
+              <input id="eff_ac" type="number" value="90" min="70" max="100" step="1" style="max-width:90px"/>
+              <input id="eff_dc" type="number" value="96" min="80" max="100" step="1" style="max-width:90px"/>
+              <span class="small">Perdas típicas: AC 85–95%; DC 92–98%.</span>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field"><label>Temperatura ambiente (°C)</label><input id="tempC" type="number" value="20" step="1"/></div>
+          <div class="field"><label>Precondicionamento antes de DC?</label>
+            <select id="precond"><option value="1">Sim</option><option value="0" selected>Não</option></select>
+          </div>
+          <div class="field" style="align-self:end">
+            <div class="buttons"><button id="simular">Simular</button><button class="secondary" id="exemplo">Exemplo rápido (Model 3 RWD)</button><button class="ghost" id="reset">Repor</button></div>
+          </div>
+        </div>
+      </fieldset>
+    </section>
+    <section class="card">
+      <fieldset style="border:0;padding:0;margin:0">
+        <legend>3) Equipamentos AC (limites automáticos)</legend>
+        <div class="note small">Potência efetiva = <code>min(equip, limite AC do carro, fases/contrato)</code> × <b>eficiência AC</b>.</div>
+        <hr/>
+        <legend>Gestão de curvas DC personalizadas</legend>
+        <div class="small">Formato: lista JSON <code>[[SoC,fator],[...]]</code> (0–100%), onde <code>fator</code> multiplica o <b>pico</b> (ajustado por HPC e posto). Exemplos no botão <i>Template</i>.</div>
+        <textarea id="curve_custom" placeholder="Cole aqui a sua curva [[10,1],[50,1],[70,0.6],[80,0.4],[100,0.12]]"></textarea>
+        <div class="buttons" style="margin-top:8px">
+          <button class="ghost" id="use_custom">Usar curva personalizada</button>
+          <button class="ghost" id="clear_custom">Limpar</button>
+          <button class="ghost" id="btn_template">Download template</button>
+          <button class="ghost" id="btn_export">Exportar curva atual</button>
+          <label class="ghost" for="file_import" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;padding:9px 12px">
+            <input id="file_import" type="file" accept="application/json" class="hide"/>Importar JSON…
+          </label>
+        </div>
+      </fieldset>
+    </section>
+  </div>
+
+  <section class="card" style="margin-top:16px">
+    <legend>4) Gráficos</legend>
+    <div class="grid" style="grid-template-columns:1fr 1fr">
+      <div>
+        <h3 style="margin:6px 0">AC — Potência (kW) vs Tempo</h3>
+        <canvas id="chartAC" height="260"></canvas>
+      </div>
+      <div>
+        <h3 style="margin:6px 0">DC — Potência (kW) vs Tempo</h3>
+        <canvas id="chartDC" height="260"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:16px">
+    <legend>Notas & fontes</legend>
+    <div class="small">
+      Curvas por modelo baseadas em EVKX/EV Database e guias de tempo 10–80% divulgados pelos fabricantes e media especializados. Frio sem precondicionamento penaliza a potência de pico e mantém taper mais cedo.<br/>
+      Este simulador visa <b>consistência</b> e <b>comparação</b>, não valores laboratoriais.
+    </div>
+  </section>
+</div>
+
+<script>
+// ===== Tema (light/dark) =====
+(function(){
+  const sw=document.getElementById('theme_switch');
+  const saved=localStorage.getItem('theme');
+  if(saved==='dark'){ document.documentElement.setAttribute('data-theme','dark'); sw.checked=true; }
+  sw.addEventListener('change',()=>{
+    const t=sw.checked?'dark':'light';
+    document.documentElement.setAttribute('data-theme', t==='dark'?'dark':'');
+    if(t==='dark') localStorage.setItem('theme','dark'); else localStorage.removeItem('theme');
+  });
+})();
+</script>
+<script>
+// ===== MiniChart =====
+class MiniChart{
+  constructor(ctx){ this.ctx=ctx; this.series=[]; this.colors=["#16a34a","#2563eb","#f59e0b","#ef4444"]; }
+  draw(){
+    const c=this.ctx.canvas; const w=c.width=c.clientWidth, h=c.height=c.clientHeight; const ctx=this.ctx;
+    ctx.clearRect(0,0,w,h); ctx.font='12px system-ui'; ctx.textAlign='left'; ctx.textBaseline='middle';
+    const ds=this.series; let xmin=Infinity,xmax=-Infinity,ymin=Infinity,ymax=-Infinity;
+    for(const s of ds){ for(const p of s.data){ if(p[0]<xmin)xmin=p[0]; if(p[0]>xmax)xmax=p[0]; if(p[1]<ymin)ymin=p[1]; if(p[1]>ymax)ymax=p[1]; } }
+    if(!isFinite(xmin)) return;
+    const pad=36; const gx0=pad, gy0=pad, gx1=w-pad, gy1=h-2*pad;
+    // grid Y
+    this.ctx.strokeStyle='rgba(148,163,184,.25)'; ctx.lineWidth=1; ctx.beginPath();
+    for(let i=0;i<=5;i++){ const y=gy0+i*(gy1-gy0)/5; ctx.moveTo(gx0,y); ctx.lineTo(gx1,y); }
+    ctx.stroke();
+    // ticks Y
+    const yspan=(ymax-ymin)||1;
+    for(let i=0;i<=5;i++){ const yv=ymin+i*yspan/5; const y=gy1 - (yv - ymin)/yspan*(gy1-gy0); ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--muted'); ctx.fillText(yv.toFixed(yspan>20?0:1), 4, y); }
+    // series
+    ds.forEach((s,idx)=>{
+      ctx.strokeStyle=this.colors[idx%this.colors.length]; ctx.lineWidth=2; ctx.beginPath();
+      s.data.forEach((p,j)=>{
+        const x = gx0 + (p[0]-xmin)/((xmax-xmin)||1)*(gx1-gx0);
+        const y = gy1 - (p[1]-ymin)/((ymax-ymin)||1)*(gy1-gy0);
+        if(j===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+      ctx.fillStyle=this.colors[idx%this.colors.length]; ctx.fillRect(gx0+idx*180, h-pad+6, 10,10);
+      ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--text'); ctx.fillText(s.name, gx0+14+idx*180, h-pad+12);
+    });
+  }
+}
+</script>
+<script>
+// ===== Base de dados de carros + curvas por modelo (aprox.) =====
+// Nota: fatores (0–1) multiplicam o pico DC do carro e são recortados por posto/HPC/eficiência.
+const carsDB = [
+  {brand:'Tesla', model:'Model 3 RWD (2025, LFP64)', batt:60.5, ac:11, dc:170, chem:'LFP', phases:3, arch:400,
+   curve:[[5,0.85],[10,1.00],[30,0.95],[50,0.85],[60,0.70],[70,0.55],[80,0.35],[90,0.20],[100,0.10]]}, // EVKX M3 (170 kW) 10–80% ~33m
+  {brand:'Tesla', model:'Model 3 Long Range RWD (2026)', batt:82.0, ac:11, dc:250, chem:'NMC', phases:3, arch:400,
+   curve:[[5,0.90],[10,1.00],[20,0.95],[40,0.80],[50,0.70],[60,0.60],[70,0.45],[80,0.32],[90,0.20],[100,0.10]]},
+  {brand:'Tesla', model:'Model Y Long Range (2025)', batt:79.0, ac:11, dc:250, chem:'NMC', phases:3, arch:400,
+   curve:[[5,0.90],[10,1.00],[30,0.92],[50,0.62],[60,0.50],[70,0.40],[80,0.28],[90,0.16],[100,0.08]]},
+  {brand:'Hyundai', model:'IONIQ 5 LR AWD (2025)', batt:80.0, ac:11, dc:260, chem:'NMC', phases:3, arch:800,
+   curve:[[5,0.80],[10,0.95],[20,1.00],[40,1.00],[50,0.95],[60,0.85],[70,0.65],[80,0.45],[90,0.22],[100,0.12]]},
+  {brand:'Kia', model:'EV6 Long Range AWD (2025)', batt:80.0, ac:11, dc:260, chem:'NMC', phases:3, arch:800,
+   curve:[[5,0.85],[10,1.00],[30,0.95],[50,0.85],[60,0.75],[70,0.55],[80,0.40],[90,0.20],[100,0.12]]},
+  {brand:'Volkswagen', model:'ID.4 Pro (MY26)', batt:77.0, ac:11, dc:135, chem:'NMC', phases:3, arch:400,
+   curve:[[5,0.75],[10,0.85],[20,0.95],[30,1.00],[40,0.95],[50,0.90],[60,0.75],[70,0.55],[80,0.40],[90,0.22],[100,0.12]]},
+  {brand:'Škoda', model:'Enyaq iV 80', batt:77.0, ac:11, dc:135, chem:'NMC', phases:3, arch:400,
+   curve:[[5,0.70],[10,0.85],[20,0.95],[30,1.00],[40,0.95],[50,0.85],[60,0.70],[70,0.50],[80,0.35],[90,0.20],[100,0.12]]},
+  {brand:'Renault', model:'Megane E-Tech EV60', batt:60.0, ac:22, dc:130, chem:'NMC', phases:3, arch:400,
+   curve:[[5,0.60],[10,0.85],[20,1.00],[30,0.95],[40,0.90],[50,0.80],[60,0.70],[70,0.60],[80,0.45],[90,0.25],[100,0.12]]},
+  {brand:'Peugeot', model:'e-208 (156)', batt:48.0, ac:11, dc:100, chem:'NMC', phases:3, arch:400,
+   curve:[[5,0.55],[10,0.70],[20,0.90],[30,1.00],[40,0.95],[50,0.85],[60,0.75],[70,0.62],[80,0.45],[90,0.28],[100,0.15]]},
+  {brand:'MG', model:'MG4 64 kWh (XPOWER)', batt:61.7, ac:11, dc:135, chem:'NMC', phases:3, arch:400,
+   curve:[[5,0.60],[10,0.95],[20,0.98],[30,1.00],[40,1.00],[50,0.98],[60,0.90],[70,0.70],[80,0.50],[90,0.30],[100,0.15]]},
+  {brand:'BYD', model:'ATTO 3 (Blade 60.5)', batt:60.5, ac:11, dc:88, chem:'LFP', phases:3, arch:400,
+   curve:[[5,0.75],[10,0.95],[20,0.98],[30,1.00],[40,1.00],[50,0.98],[60,0.95],[65,0.65],[70,0.60],[80,0.45],[90,0.28],[100,0.15]]},
+  {brand:'BMW', model:'i4 eDrive40', batt:80.7, ac:11, dc:205, chem:'NMC', phases:3, arch:400,
+   curve:[[5,0.20],[10,0.97],[20,0.98],[30,0.97],[40,0.90],[50,0.75],[60,0.62],[70,0.50],[80,0.40],[90,0.25],[100,0.15]]},
+  {brand:'Porsche', model:'Taycan (Perf. Battery Plus)', batt:97.0, ac:11, dc:270, chem:'NMC', phases:3, arch:800,
+   curve:[[5,0.75],[10,0.80],[20,0.90],[30,0.95],[40,1.00],[50,0.95],[60,0.85],[70,0.65],[80,0.50],[90,0.30],[100,0.18]]},
+  {brand:'Outro', model:'(personalizado)', batt:50, ac:7.4, dc:100, chem:'NMC', phases:1, arch:400 }
+];
+
+const marcaSel = document.getElementById('marca');
+const modeloSel = document.getElementById('modelo');
+const marcaCustomWrap=document.getElementById('marca_custom_wrap');
+const modeloCustomWrap=document.getElementById('modelo_custom_wrap');
+
+const uniqueBrands = [...new Set(carsDB.map(c=>c.brand))];
+uniqueBrands.forEach(b=>{const o=document.createElement('option');o.value=b;o.textContent=b;marcaSel.appendChild(o)});
+
+function fillModels(){
+  modeloSel.innerHTML='';
+  let list=carsDB.filter(c=>c.brand===marcaSel.value);
+  if(list.length===0 && marcaSel.value==='Outro'){ list=[{brand:'Outro', model:'(personalizado)'}]; }
+  list.forEach(m=>{const o=document.createElement('option');o.value=m.model;o.textContent=m.model;modeloSel.appendChild(o)});
+  toggleCustomFields();
+}
+function toggleCustomFields(){
+  const isOutro = (marcaSel.value==='Outro' || modeloSel.value==='(personalizado)');
+  marcaCustomWrap.classList.toggle('hide', !(marcaSel.value==='Outro'));
+  modeloCustomWrap.classList.toggle('hide', !isOutro);
+}
+marcaSel.addEventListener('change', fillModels);
+fillModels();
+
+function setCarFields(car){
+  document.getElementById('batt_kwh').value=car.batt;
+  document.getElementById('ac_limit').value=car.ac;
+  document.getElementById('dc_peak').value=car.dc;
+  document.getElementById('chem').value=car.chem;
+  document.getElementById('phases').value=car.phases;
+  document.getElementById('arch').value=car.arch;
+}
+
+function getSelectedCar(){
+  return carsDB.find(c=>c.brand===marcaSel.value && c.model===modeloSel.value);
+}
+
+document.getElementById('btnCarregarModel').addEventListener('click', ()=>{
+  const car=getSelectedCar(); if(car) setCarFields(car);
+});
+
+document.getElementById('btnAplicarCurva').addEventListener('click', ()=>{
+  const car=getSelectedCar();
+  if(car && car.curve){ customCurve = car.curve.slice(); alert('Curva do modelo aplicada.'); run(); }
+  else alert('Sem curva predefinida para este modelo.');
+});
+
+// ===== Utilitários =====
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function lerp(a,b,t){return a+(b-a)*t}
+function fmt(h){ const m=Math.round(h*60); const hh=Math.floor(m/60).toString().padStart(2,'0'); const mm=(m%60).toString().padStart(2,'0'); return `${hh}:${mm}`; }
+
+// Tensão média do pack por SOC e arquitetura (aprox.)
+function vpackBySOC(soc, arch){
+  if(arch>=800){ const v0=620, v1=800; const t=clamp(soc/50,0,1); return lerp(v0,v1,t); }
+  else { const v0=330, v1=430; const t=clamp(soc/60,0,1); return lerp(v0,v1,t); }
+}
+
+// Limite por fases/contrato (kW)
+function acPhaseContractLimit(phasesCar, contract_kVA){
+  const V1P=230, V3P=400; const isTri = contract_kVA>10.35; // heurística
+  if(isTri){ const Iph = (contract_kVA*1000)/(Math.sqrt(3)*V3P); if(phasesCar==1){ return Math.min(contract_kVA, (Iph*V1P)/1000); } return contract_kVA; }
+  return contract_kVA;
+}
+
+function acPowerEffective(equipment_kW, carLimit_kW, contracted_kW, phasesCar, effAC){
+  const limitPhase = acPhaseContractLimit(phasesCar, contracted_kW);
+  const raw = Math.max(0, Math.min(equipment_kW, carLimit_kW, contracted_kW, limitPhase));
+  return raw * (effAC/100);
+}
+
+// Curva DC genérica fallback
+function dcFactorGeneric(s, chem){
+  const soc=s;
+  if(chem==='LFP'){
+    if(soc<5) return 0.85; if(soc<20) return 0.95; if(soc<60) return 1.00; if(soc<80) return 1.00 - ((soc-60)/20)*(0.40); if(soc<=100) return 0.60 - ((soc-80)/20)*(0.32);
+  } else {
+    if(soc<10) return 0.95; if(soc<50) return 1.00; if(soc<70) return 1.00 - ((soc-50)/20)*(0.45); if(soc<80) return 0.55 - ((soc-70)/10)*(0.20); if(soc<=100) return Math.max(0.08, 0.35 - ((soc-80)/20)*(0.27));
+  }
+  return 0.1;
+}
+
+let customCurve=null;
+function setCustomCurveFromText(txt){ try{ const arr=JSON.parse(txt); if(Array.isArray(arr)) { customCurve=arr.sort((a,b)=>a[0]-b[0]); return true; } }catch(e){return false} return false; }
+function interpCustomFactor(s){
+  if(!customCurve||customCurve.length<2) return null; const soc=clamp(s,0,100);
+  for(let i=0;i<customCurve.length-1;i++){ const a=customCurve[i], b=customCurve[i+1]; if(soc>=a[0] && soc<=b[0]){ const t=(soc-a[0])/(b[0]-a[0]||1); return lerp(a[1],b[1],t); } }
+  if(soc<=customCurve[0][0]) return customCurve[0][1]; if(soc>=customCurve[customCurve.length-1][0]) return customCurve[customCurve.length-1][1]; return null;
+}
+
+function tempPenalty(tempC, precond){ if(precond) return 1.0; if(tempC>=15) return 1.0; if(tempC>=0) return 1.0 - (15-tempC)*0.02; if(tempC>=-10) return 0.7 - (0 - tempC)*0.02; return 0.5; }
+function hpcLimit(hpcStr){ const [pwr,amp]=hpcStr.split('x'); const kW=parseFloat(pwr)||350; const A=parseFloat(amp)||500; return {kW:kW, A:A}; }
+
+function simulateAC(batt_kwh, soc0, soc1, base_power_kW){
+  soc0=clamp(soc0,0,100); soc1=clamp(soc1,0,100); if(soc1<=soc0 || base_power_kW<=0) return {timeH:0, curveP:[]};
+  const step=0.5; let soc=soc0; let tH=0; const pSeries=[]; const Pbase=base_power_kW;
+  while(soc<soc1-1e-9){ const next=clamp(soc+step, soc, soc1); let Pf=Pbase; if(next>95){ const f=Math.max(0.5, 1 - (next-95)/5); Pf=Pbase*f; }
+    const dE=batt_kwh * (next - soc)/100; const dt=dE/Math.max(0.1,Pf); const t0=tH*60, t1=(tH+dt)*60; pSeries.push([t0,Pf]); pSeries.push([t1,Pf]); tH+=dt; soc=next; }
+  return {timeH:tH, curveP:pSeries};
+}
+
+function simulateDC(batt_kwh, soc0, soc1, site_kW, carDC_kW, arch, chem, effDC, tempC, precond, hpcPreset){
+  soc0=clamp(soc0,0,100); soc1=clamp(soc1,0,100); if(soc1<=soc0) return {timeH:0, curveP:[]};
+  const step=0.5; let soc=soc0; let tH=0; const pSeries=[]; const tempF=tempPenalty(tempC, precond);
+  const {kW:siteNom,A:imax}=hpcPreset; const siteKWlimit=Math.min(site_kW, siteNom);
+  while(soc<soc1-1e-9){ const next=clamp(soc+step, soc, soc1); const socMid=(soc+next)/2; let f = customCurve? (interpCustomFactor(socMid)??dcFactorGeneric(socMid,chem)) : dcFactorGeneric(socMid,chem);
+    f *= tempF; const V=vpackBySOC(socMid, arch); const pByI=(V*imax)/1000; let P = Math.max(2, Math.min(siteKWlimit, carDC_kW, pByI) * f * (effDC/100));
+    const dE=batt_kwh * (next - soc)/100; const dt=dE/P; const t0=tH*60, t1=(tH+dt)*60; pSeries.push([t0,P]); pSeries.push([t1,P]); tH+=dt; soc=next; }
+  return {timeH:tH, curveP:pSeries};
+}
+
+const chartAC = new MiniChart(document.getElementById('chartAC').getContext('2d'));
+const chartDC = new MiniChart(document.getElementById('chartDC').getContext('2d'));
+
+function run(){
+  const batt=parseFloat(document.getElementById('batt_kwh').value)||0;
+  const ac_limit=parseFloat(document.getElementById('ac_limit').value)||0;
+  const dc_peak=parseFloat(document.getElementById('dc_peak').value)||0;
+  const chem=document.getElementById('chem').value;
+  const soc0=parseFloat(document.getElementById('soc_start').value)||0;
+  const soc1=parseFloat(document.getElementById('soc_target').value)||0;
+  const siteDC=parseFloat(document.getElementById('dc_site').value)||0;
+  const contracted=parseFloat(document.getElementById('contract').value)||0; // kVA ≈ kW
+  const phasesCar=parseInt(document.getElementById('phases').value)||1;
+  const effAC=parseFloat(document.getElementById('eff_ac').value)||90; const effDC=parseFloat(document.getElementById('eff_dc').value)||96;
+  const arch=parseFloat(document.getElementById('arch').value)||400;
+  const tempC=parseFloat(document.getElementById('tempC').value)||20; const precond=(document.getElementById('precond').value==='1');
+  const hpc=hpcLimit(document.getElementById('hpc').value);
+
+  // AC efetivo
+  const P37eff=acPowerEffective(3.7, ac_limit, contracted, phasesCar, effAC);
+  const P74eff=acPowerEffective(7.4, ac_limit, contracted, phasesCar, effAC);
+  const P22eff=acPowerEffective(22.0, ac_limit, contracted, phasesCar, effAC);
+
+  const r37=simulateAC(batt,soc0,soc1,P37eff);
+  const r74=simulateAC(batt,soc0,soc1,P74eff);
+  const r22=simulateAC(batt,soc0,soc1,P22eff);
+  const rdc=simulateDC(batt,soc0,soc1,siteDC,dc_peak,arch,chem,effDC,tempC,precond,hpc);
+
+  document.getElementById('t_37').textContent= P37eff>0?fmt(r37.timeH):'—';
+  document.getElementById('t_74').textContent= P74eff>0?fmt(r74.timeH):'—';
+  document.getElementById('t_22').textContent= P22eff>0?fmt(r22.timeH):'—';
+  document.getElementById('t_dc').textContent= fmt(rdc.timeH);
+  const eAdded = batt * Math.max(0,(soc1-soc0))/100; document.getElementById('e_added').textContent = eAdded.toFixed(1);
+
+  chartAC.series=[
+    {name:`Tomada reforçada (efetivo ${P37eff.toFixed(1)} kW)`, data:r37.curveP},
+    {name:`Wallbox 7,4 kW (efetivo ${P74eff.toFixed(1)} kW)`, data:r74.curveP},
+    {name:`Wallbox 22 kW (efetivo ${P22eff.toFixed(1)} kW)`, data:r22.curveP}
+  ].filter(s=>s.data.length>0);
+  chartAC.draw();
+
+  chartDC.series=[ {name:`DC público`, data:rdc.curveP} ]; chartDC.draw();
+}
+
+document.getElementById('simular').addEventListener('click', run);
+document.getElementById('exemplo').addEventListener('click', ()=>{
+  const car=carsDB.find(c=>c.brand==='Tesla' && c.model.startsWith('Model 3 RWD')) || carsDB[0];
+  marcaSel.value=car.brand; fillModels(); modeloSel.value=car.model; setCarFields(car); customCurve=car.curve.slice();
+  document.getElementById('soc_start').value=10; document.getElementById('soc_target').value=80; document.getElementById('dc_site').value=150; document.getElementById('contract').value='6.90'; document.getElementById('eff_ac').value=90; document.getElementById('eff_dc').value=96; document.getElementById('tempC').value=20; document.getElementById('precond').value='1'; document.getElementById('hpc').value='150x350'; run();
+});
+
+document.getElementById('reset').addEventListener('click', ()=>{ location.reload(); });
+
+(function init(){ const car=carsDB[0]; marcaSel.value=car.brand; fillModels(); modeloSel.value=car.model; setCarFields(car); customCurve=car.curve?car.curve.slice():null; run(); })();
+
+window.addEventListener('resize', ()=>{ chartAC.draw(); chartDC.draw(); });
+
+// ===== Curva personalizada: UI =====
+const txt=document.getElementById('curve_custom');
+document.getElementById('use_custom').addEventListener('click', ()=>{ if(setCustomCurveFromText(txt.value)){ alert('Curva personalizada aplicada.'); run(); } else { alert('JSON inválido. Use [[soc,fator], ...]'); }});
+document.getElementById('clear_custom').addEventListener('click', ()=>{ customCurve=null; txt.value=''; alert('Curva personalizada limpa.'); run(); });
+
+// Template download
+function download(filename, text){ const blob=new Blob([text], {type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();}, 200); }
+
+document.getElementById('btn_template').addEventListener('click', ()=>{
+  const car=getSelectedCar()||carsDB[0];
+  const template={
+    model: car.brand+" "+car.model,
+    metadata:{ peak_kW:car.dc, battery_kWh:car.batt, chemistry:car.chem, architecture:car.arch+"V", note:"fator é fração do pico do carro, recortado por HPC/posto/eficiência" },
+    example_curve:[[10,1.0],[50,1.0],[70,0.6],[80,0.4],[100,0.12]],
+    format:"[[SoC,fator], ...] (0–100% SoC)"
+  };
+  download(`curva_template_${car.brand}_${car.model}.json`, JSON.stringify(template, null, 2));
+});
+
+// Export da curva atual (aplica customCurve se existir; senão a da base; senão genérica amostral)
+document.getElementById('btn_export').addEventListener('click', ()=>{
+  const car=getSelectedCar()||carsDB[0];
+  const curve = customCurve? customCurve : (car.curve? car.curve : [[10,1.0],[50,1.0],[70,0.6],[80,0.4],[100,0.12]]);
+  const payload={ model: car.brand+" "+car.model, peak_kW:car.dc, battery_kWh:car.batt, curve:curve };
+  download(`curva_${car.brand}_${car.model}.json`, JSON.stringify(payload, null, 2));
+});
+
+// Import de JSON para curva
+const fileInput=document.getElementById('file_import');
+fileInput.addEventListener('change', (ev)=>{
+  const f=ev.target.files[0]; if(!f) return; const reader=new FileReader();
+  reader.onload=()=>{ try{ const obj=JSON.parse(reader.result); if(obj.curve && Array.isArray(obj.curve)){ customCurve=obj.curve.sort((a,b)=>a[0]-b[0]); txt.value=JSON.stringify(customCurve); alert('Curva importada.'); run(); } else if(Array.isArray(obj)) { customCurve=obj.sort((a,b)=>a[0]-b[0]); txt.value=JSON.stringify(customCurve); alert('Curva importada.'); run(); } else { alert('Ficheiro sem campo "curve" válido.'); } } catch(e){ alert('JSON inválido.'); } };
+  reader.readAsText(f);
+});
+</script>
+</body>
+</html>
